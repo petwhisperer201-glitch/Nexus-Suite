@@ -10,7 +10,6 @@ import tkinter as tk
 
 # --- 1. UNIVERSAL BOOTSTRAP ---
 def bootstrap():
-    # Added 'requests' to the auto-install list for update logic
     libs = ['Pillow', 'pyautogui', 'pyperclip', 'pynput', 'pystray', 'pygetwindow', 'requests']
     for lib in libs:
         try:
@@ -25,7 +24,7 @@ bootstrap()
 
 import pyautogui
 import pyperclip
-import requests  # Required for GitHub communication
+import requests
 from pynput import keyboard
 from PIL import Image, ImageDraw
 import pystray
@@ -47,11 +46,11 @@ except:
     HAS_FOCUS_LOGIC = False
 
 # =============================================================================
-# 2. VERSION & UPDATE CONFIG (GitHub Side)
+# 2. VERSION & UPDATE CONFIG
 # =============================================================================
 VERSION = "6.0"
-# REPLACE THIS URL with your actual raw github link
-REPO_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/nexus.py"
+# This is your specific raw URL for auto-updating
+REPO_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/NEXUS.pyw"
 
 # =============================================================================
 # 3.  THEMES
@@ -243,30 +242,21 @@ class App:
         # Trigger background update check on startup
         threading.Thread(target=self._run_update_check, daemon=True).start()
 
-    # =========================================================================
-    # UPDATE SYSTEM
-    # =========================================================================
     def _run_update_check(self):
         try:
             r = requests.get(REPO_URL, timeout=5)
             if r.status_code == 200:
                 remote_code = r.text
-                # Use regex to find VERSION = "X" in the GitHub code
                 match = re.search(r'VERSION\s*=\s*"([^"]+)"', remote_code)
                 if match:
                     remote_ver = match.group(1)
                     if remote_ver != VERSION:
-                        # Version mismatch: Write new code to current file
                         with open(__file__, "w", encoding="utf-8") as f:
                             f.write(remote_code)
-                        # Restart script
                         os.execv(sys.executable, [sys.executable] + sys.argv)
         except:
             pass
 
-    # =========================================================================
-    # RAIN
-    # =========================================================================
     def _init_drops(self, theme):
         self._theme = theme
         self.drops  = [
@@ -294,9 +284,6 @@ class App:
         self.canvas.tag_lower("rain")
         self.root.after(30, self._draw_rain)
 
-    # =========================================================================
-    # SHARED HELPERS
-    # =========================================================================
     def _clear_ui(self):
         self.canvas.delete("ui")
         for w in self.root.winfo_children():
@@ -340,9 +327,6 @@ class App:
     def _status_update(self, tag_id, text, color):
         self.root.after(0, lambda: self.canvas.itemconfig(tag_id, text=text, fill=color))
 
-    # =========================================================================
-    # LAUNCHER VIEW
-    # =========================================================================
     def _show_launcher(self):
         self.current_view = self.VIEW_LAUNCHER
         self._clear_ui()
@@ -392,9 +376,6 @@ class App:
             c.tag_bind(it, "<Leave>",    leave)
             c.tag_bind(it, "<Button-1>", click)
 
-    # =========================================================================
-    # NEXUS VIEW
-    # =========================================================================
     def _show_nexus(self):
         self.current_view = self.VIEW_NEXUS
         self._clear_ui()
@@ -496,9 +477,6 @@ class App:
         self._hk_listener = hk
         threading.Thread(target=hk.run, daemon=True).start()
 
-    # =========================================================================
-    # KAHOOT VIEW
-    # =========================================================================
     def _show_kahoot(self):
         self.current_view = self.VIEW_KAHOOT
         self._clear_ui()
@@ -582,9 +560,6 @@ class App:
         self.kahoot_eng.stop()
         self._kahoot_status_cb("> STOPPED", "#FF4444")
 
-    # =========================================================================
-    # SYSTEM TRAY
-    # =========================================================================
     def _setup_tray(self):
         img = Image.new("RGB", (64, 64), "#000000")
         d   = ImageDraw.Draw(img)
@@ -607,10 +582,6 @@ class App:
         else:
             self._show()
 
-
-# =============================================================================
-# 8.  ENTRY POINT
-# =============================================================================
 if __name__ == "__main__":
     root = tk.Tk()
     App(root)
