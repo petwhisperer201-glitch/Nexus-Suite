@@ -48,7 +48,7 @@ except:
 # =============================================================================
 # 2. VERSION & UPDATE CONFIG
 # =============================================================================
-VERSION = "6.0"
+VERSION = "6.1"
 # This is your specific raw URL for auto-updating
 REPO_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/NEXUS.pyw"
 
