@@ -1,3 +1,16 @@
+# =================================================================
+# NEXUS MODULE SUITE - Behavioral Utility Tool
+# Provided "AS IS" for educational and productivity purposes.
+# The owners (petwhisperer201-glitch, The-Samri) and their team 
+# are not responsible for misuse, academic penalties, or 
+# third-party platform bans.
+# By running this software, the user assumes all responsibility.
+# =================================================================
+
+VERSION = "6.2"
+REPO_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/NEXUS.pyw"
+
+
 import subprocess
 import sys
 import os
@@ -8,7 +21,7 @@ import random
 import json
 import tkinter as tk
 
-# --- 1. UNIVERSAL BOOTSTRAP ---
+# Universal Bootstrap
 def bootstrap():
     libs = ['Pillow', 'pyautogui', 'pyperclip', 'pynput', 'pystray', 'pygetwindow', 'requests']
     for lib in libs:
@@ -23,6 +36,10 @@ def bootstrap():
 bootstrap()
 
 import pyautogui
+
+# Slam the mouse to the top-left corner to kill the script
+pyautogui.FAILSAFE = True 
+
 import pyperclip
 import requests
 from pynput import keyboard
@@ -45,16 +62,6 @@ try:
 except:
     HAS_FOCUS_LOGIC = False
 
-# =============================================================================
-# 2. VERSION & UPDATE CONFIG
-# =============================================================================
-VERSION = "6.1"
-# This is your specific raw URL for auto-updating
-REPO_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/NEXUS.pyw"
-
-# =============================================================================
-# 3.  THEMES
-# =============================================================================
 THEME_NEXUS = {
     "bg":      "#000000",
     "rain":    "#002200",
@@ -85,9 +92,7 @@ THEME_LAUNCHER = {
     "chars":   "01NEXUS",
 }
 
-# =============================================================================
-# 4.  SETTINGS
-# =============================================================================
+#Settings
 SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".nexus_config.json")
 
 def save_settings(speed, errors):
@@ -107,9 +112,7 @@ def load_settings():
             pass
     return {'speed': 0.10, 'errors': 2}
 
-# =============================================================================
-# 5.  NEXUS TYPING ENGINE
-# =============================================================================
+#Typing Engine
 class NexusEngine:
     def __init__(self):
         self.is_typing      = False
@@ -181,9 +184,7 @@ class NexusEngine:
             self.lock.release()
             status_cb("> READY", THEME_NEXUS["accent"])
 
-# =============================================================================
-# 6.  KAHOOT ENGINE STUB
-# =============================================================================
+#Kahoot Engine
 class KahootEngine:
     def __init__(self):
         self.is_running     = False
@@ -204,9 +205,7 @@ class KahootEngine:
     def stop(self):
         self.stop_requested = True
 
-# =============================================================================
-# 7.  MAIN APPLICATION
-# =============================================================================
+#Main Application
 class App:
     VIEW_LAUNCHER = "launcher"
     VIEW_NEXUS    = "nexus"
@@ -238,8 +237,6 @@ class App:
         self._show_launcher()
         self._setup_tray()
         self.root.protocol("WM_DELETE_WINDOW", self._hide)
-
-        # Trigger background update check on startup
         threading.Thread(target=self._run_update_check, daemon=True).start()
 
     def _run_update_check(self):
