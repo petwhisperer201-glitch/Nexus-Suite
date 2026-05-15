@@ -30,4 +30,4 @@ Nexus is provided "as is" for educational and productivity purposes only.
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software, to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, and distribute, provided that the disclaimer above and the full license file are included in all copies or substantial portions of the Software.
 
 ---
-Created by petwhisperer201-glitch
+Created by petwhisperer201-glitch and The-Samri
