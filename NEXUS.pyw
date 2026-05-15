@@ -10,7 +10,8 @@ import tkinter as tk
 
 # --- 1. UNIVERSAL BOOTSTRAP ---
 def bootstrap():
-    libs = ['Pillow', 'pyautogui', 'pyperclip', 'pynput', 'pystray', 'pygetwindow']
+    # Added 'requests' to the auto-install list for update logic
+    libs = ['Pillow', 'pyautogui', 'pyperclip', 'pynput', 'pystray', 'pygetwindow', 'requests']
     for lib in libs:
         try:
             __import__('PIL' if lib == 'Pillow' else lib.lower())
@@ -24,6 +25,7 @@ bootstrap()
 
 import pyautogui
 import pyperclip
+import requests  # Required for GitHub communication
 from pynput import keyboard
 from PIL import Image, ImageDraw
 import pystray
@@ -45,40 +47,47 @@ except:
     HAS_FOCUS_LOGIC = False
 
 # =============================================================================
-# 2.  THEMES
+# 2. VERSION & UPDATE CONFIG (GitHub Side)
+# =============================================================================
+VERSION = "6.0"
+# REPLACE THIS URL with your actual raw github link
+REPO_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/nexus.py"
+
+# =============================================================================
+# 3.  THEMES
 # =============================================================================
 THEME_NEXUS = {
-    "bg":     "#000000",
-    "rain":   "#002200",
-    "rain_h": "#00FF41",
-    "accent": "#00F0FF",
-    "text":   "#FFFFFF",
-    "dim":    "#444444",
-    "chars":  "01NEXUS",
+    "bg":      "#000000",
+    "rain":    "#002200",
+    "rain_h":  "#00FF41",
+    "accent":  "#00F0FF",
+    "text":    "#FFFFFF",
+    "dim":     "#444444",
+    "chars":   "01NEXUS",
 }
 
 THEME_KAHOOT = {
-    "bg":     "#050008",
-    "rain":   "#1A0033",
-    "rain_h": "#CC44FF",
-    "accent": "#FF44CC",
-    "text":   "#F0D0FF",
-    "dim":    "#4A2060",
-    "chars":  "KAHOOT01?!ABCDE",
+    "bg":      "#050008",
+    "rain":    "#1A0033",
+    "rain_h":  "#CC44FF",
+    "accent":  "#FF44CC",
+    "text":    "#F0D0FF",
+    "dim":     "#4A2060",
+    "chars":   "KAHOOT01?!ABCDE",
 }
 
 THEME_LAUNCHER = {
-    "bg":     "#000000",
-    "rain":   "#002200",
-    "rain_h": "#00FF41",
-    "accent": "#00F0FF",
-    "text":   "#FFFFFF",
-    "dim":    "#444444",
-    "chars":  "01NEXUS",
+    "bg":      "#000000",
+    "rain":    "#002200",
+    "rain_h":  "#00FF41",
+    "accent":  "#00F0FF",
+    "text":    "#FFFFFF",
+    "dim":     "#444444",
+    "chars":   "01NEXUS",
 }
 
 # =============================================================================
-# 3.  SETTINGS
+# 4.  SETTINGS
 # =============================================================================
 SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".nexus_config.json")
 
@@ -100,7 +109,7 @@ def load_settings():
     return {'speed': 0.10, 'errors': 2}
 
 # =============================================================================
-# 4.  NEXUS TYPING ENGINE
+# 5.  NEXUS TYPING ENGINE
 # =============================================================================
 class NexusEngine:
     def __init__(self):
@@ -174,7 +183,7 @@ class NexusEngine:
             status_cb("> READY", THEME_NEXUS["accent"])
 
 # =============================================================================
-# 5.  KAHOOT ENGINE STUB
+# 6.  KAHOOT ENGINE STUB
 # =============================================================================
 class KahootEngine:
     def __init__(self):
@@ -182,15 +191,12 @@ class KahootEngine:
         self.stop_requested = False
 
     def connect(self, game_pin: str, nickname: str, status_cb):
-        # ── TODO: join the game via websocket / selenium ──────────────────────
         status_cb("> connect() NOT YET IMPLEMENTED", "#FFCC00")
 
     def answer(self, choice: int, status_cb):
-        # ── TODO: submit answer 0-3 ───────────────────────────────────────────
         status_cb(f"> answer({choice}) NOT YET IMPLEMENTED", "#FFCC00")
 
     def run_auto(self, status_cb):
-        # ── TODO: watch for questions, pick answers, loop ─────────────────────
         self.is_running     = True
         self.stop_requested = False
         status_cb("> run_auto() NOT YET IMPLEMENTED", "#FFCC00")
@@ -200,7 +206,7 @@ class KahootEngine:
         self.stop_requested = True
 
 # =============================================================================
-# 6.  MAIN APPLICATION
+# 7.  MAIN APPLICATION
 # =============================================================================
 class App:
     VIEW_LAUNCHER = "launcher"
@@ -233,6 +239,30 @@ class App:
         self._show_launcher()
         self._setup_tray()
         self.root.protocol("WM_DELETE_WINDOW", self._hide)
+
+        # Trigger background update check on startup
+        threading.Thread(target=self._run_update_check, daemon=True).start()
+
+    # =========================================================================
+    # UPDATE SYSTEM
+    # =========================================================================
+    def _run_update_check(self):
+        try:
+            r = requests.get(REPO_URL, timeout=5)
+            if r.status_code == 200:
+                remote_code = r.text
+                # Use regex to find VERSION = "X" in the GitHub code
+                match = re.search(r'VERSION\s*=\s*"([^"]+)"', remote_code)
+                if match:
+                    remote_ver = match.group(1)
+                    if remote_ver != VERSION:
+                        # Version mismatch: Write new code to current file
+                        with open(__file__, "w", encoding="utf-8") as f:
+                            f.write(remote_code)
+                        # Restart script
+                        os.execv(sys.executable, [sys.executable] + sys.argv)
+        except:
+            pass
 
     # =========================================================================
     # RAIN
@@ -269,7 +299,6 @@ class App:
     # =========================================================================
     def _clear_ui(self):
         self.canvas.delete("ui")
-        # destroy any embedded tk widgets from last view
         for w in self.root.winfo_children():
             if isinstance(w, (tk.Entry,)):
                 w.destroy()
@@ -294,7 +323,6 @@ class App:
             c.tag_bind(it, "<Button-1>", click)
 
     def _back_btn(self):
-        """Small ◀ BACK button top-left."""
         c = self.canvas
         rect = c.create_rectangle(15, 12, 95, 38, outline=self._theme["dim"],
                                    fill=self._theme["bg"], width=1, tags="ui")
@@ -327,8 +355,8 @@ class App:
         c.create_line(80, 152, 470, 152, fill=THEME_LAUNCHER["dim"], width=1, tags="ui")
 
         modules = [
-            {"label": "N E X U S",  "sub": "Behavioral Typing Engine  v6.0", "color": THEME_LAUNCHER["accent"], "view": self.VIEW_NEXUS},
-            {"label": "K A H O O T","sub": "Game-Bot Module  [IN DEV]",       "color": "#CC44FF",                 "view": self.VIEW_KAHOOT},
+            {"label": "N E X U S",  "sub": f"Behavioral Typing Engine  v{VERSION}", "color": THEME_LAUNCHER["accent"], "view": self.VIEW_NEXUS},
+            {"label": "K A H O O T","sub": "Game-Bot Module  [IN DEV]",                "color": "#CC44FF",                 "view": self.VIEW_KAHOOT},
         ]
         for idx, mod in enumerate(modules):
             self._launcher_card(mod, y=260 + idx * 200)
@@ -377,14 +405,14 @@ class App:
 
         self._back_btn()
         c.create_text(275, 80,  text="N E X U S",   font=("Impact", 46), fill=T["text"],   tags="ui")
-        c.create_text(275, 130, text="v6.0",         font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
+        c.create_text(275, 130, text=f"v{VERSION}",         font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
         self.nexus_status = c.create_text(275, 165, text="> READY",
                                            font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
         c.create_line(80, 185, 470, 185, fill=T["dim"], width=1, tags="ui")
 
         info = [
             "BEHAVIORAL ENGINE: LOADED",
-            "FATIGUE MODEL:     ACTIVE",
+            "FATIGUE MODEL:      ACTIVE",
             "COGNITIVE PAUSING: ENABLED",
             "────────────────────────────────",
             "CTRL+ALT+V: Start  |  ESC: Kill",
@@ -394,16 +422,13 @@ class App:
             c.create_text(275, 490 + i*34, text=line,
                           font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
 
-        # Sliders
         self._create_slider(275, T)
         self._create_slider(375, T, is_errors=True)
 
-        # Launch button
         self._btn(275, 430, "▶  START  (CTRL+ALT+V)", self._nexus_trigger,
                   T["accent"], w=300, h=45)
 
         self._start_nexus_hotkeys()
-        # Auto-ignite hint
         c.create_text(275, 750, text="AUTO-IGNITES IN 5s ON OPEN",
                       font=("Courier New", 9), fill=T["dim"], tags="ui")
         self.root.after(5000, self._nexus_trigger)
@@ -489,7 +514,6 @@ class App:
                                             font=("Courier New", 13, "bold"), fill=T["rain_h"], tags="ui")
         c.create_line(80, 185, 470, 185, fill=T["dim"], width=1, tags="ui")
 
-        # PIN entry
         c.create_text(275, 225, text="GAME PIN", font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
         self.pin_var = tk.StringVar()
         pin_e = tk.Entry(
@@ -501,7 +525,6 @@ class App:
         )
         c.create_window(275, 258, window=pin_e, tags="ui")
 
-        # Nickname entry
         c.create_text(275, 298, text="NICKNAME", font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
         self.nick_var = tk.StringVar(value="NexusBot")
         nick_e = tk.Entry(
@@ -514,10 +537,9 @@ class App:
         c.create_window(275, 330, window=nick_e, tags="ui")
         c.create_line(80, 358, 470, 358, fill=T["dim"], width=1, tags="ui")
 
-        # Action buttons
         self._btn(275, 415, "▶  CONNECT",   self._kahoot_connect,  T["accent"], w=220, h=48)
         self._btn(275, 490, "⚡  AUTO-PLAY", self._kahoot_autoplay, T["rain_h"], w=220, h=48)
-        self._btn(275, 565, "■  STOP",      self._kahoot_stop,     "#FF4444",   w=220, h=48)
+        self._btn(275, 565, "■  STOP",      self._kahoot_stop,      "#FF4444",   w=220, h=48)
 
         c.create_line(80, 618, 470, 618, fill=T["dim"], width=1, tags="ui")
         stub_lines = [
@@ -587,7 +609,7 @@ class App:
 
 
 # =============================================================================
-# 7.  ENTRY POINT
+# 8.  ENTRY POINT
 # =============================================================================
 if __name__ == "__main__":
     root = tk.Tk()
