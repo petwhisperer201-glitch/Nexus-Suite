@@ -10,7 +10,6 @@
 VERSION = "6.2"
 REPO_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/NEXUS.pyw"
 
-
 import subprocess
 import sys
 import os
@@ -92,7 +91,7 @@ THEME_LAUNCHER = {
     "chars":   "01NEXUS",
 }
 
-#Settings
+# Settings Management
 SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".nexus_config.json")
 
 def save_settings(speed, errors):
@@ -112,7 +111,7 @@ def load_settings():
             pass
     return {'speed': 0.10, 'errors': 2}
 
-#Typing Engine
+# Typing Engine
 class NexusEngine:
     def __init__(self):
         self.is_typing      = False
@@ -146,6 +145,7 @@ class NexusEngine:
             for word_idx, word in enumerate(words):
                 if self.stop_requested:
                     break
+                # Cognitive pause mechanics (Simulates reader pacing)
                 if word_idx > 0 and word_idx % random.randint(15, 40) == 0:
                     status_cb("> THINKING...", "#AA00FF")
                     time.sleep(random.uniform(1.2, 3.0))
@@ -164,14 +164,19 @@ class NexusEngine:
                             pass
                     status_cb("> ACTIVE", THEME_NEXUS["rain_h"])
                     fatigue = 1 + (self.char_count / 8000)
+                    
+                    # Error Generation Matrix
                     if char.lower() in self.NEIGHBORS and random.random() < ent:
                         pyautogui.write(random.choice(self.NEIGHBORS[char.lower()]))
                         time.sleep(random.uniform(0.15, 0.3))
                         pyautogui.press('backspace')
                         time.sleep(random.uniform(0.05, 0.15))
+                        
                     pyautogui.write(char)
                     self.char_count += 1
                     delay = speed * wc * fatigue * random.uniform(0.6, 1.4)
+                    
+                    # Punctuation Delay Parsing
                     if char in ".!?":
                         delay += random.uniform(0.3, 0.6)
                     elif char in ",;:":
@@ -184,28 +189,30 @@ class NexusEngine:
             self.lock.release()
             status_cb("> READY", THEME_NEXUS["accent"])
 
-#Kahoot Engine
+# Kahoot Engine (Blank Canvas Skeletons)
 class KahootEngine:
     def __init__(self):
-        self.is_running     = False
+        self.is_running      = False
         self.stop_requested = False
 
     def connect(self, game_pin: str, nickname: str, status_cb):
-        status_cb("> connect() NOT YET IMPLEMENTED", "#FFCC00")
+        # TODO: Implement connection protocols
+        pass
 
     def answer(self, choice: int, status_cb):
-        status_cb(f"> answer({choice}) NOT YET IMPLEMENTED", "#FFCC00")
+        # TODO: Implement answer array handling
+        pass
 
     def run_auto(self, status_cb):
-        self.is_running     = True
+        self.is_running = True
         self.stop_requested = False
-        status_cb("> run_auto() NOT YET IMPLEMENTED", "#FFCC00")
+        # TODO: Implement main polling routine loop
         self.is_running = False
 
     def stop(self):
         self.stop_requested = True
 
-#Main Application
+# Main GUI Window Controller
 class App:
     VIEW_LAUNCHER = "launcher"
     VIEW_NEXUS    = "nexus"
@@ -337,7 +344,7 @@ class App:
 
         modules = [
             {"label": "N E X U S",  "sub": f"Behavioral Typing Engine  v{VERSION}", "color": THEME_LAUNCHER["accent"], "view": self.VIEW_NEXUS},
-            {"label": "K A H O O T","sub": "Game-Bot Module  [IN DEV]",                "color": "#CC44FF",                 "view": self.VIEW_KAHOOT},
+            {"label": "K A H O O T","sub": "Game-Bot Module  [IN DEV]",                 "color": "#CC44FF",                 "view": self.VIEW_KAHOOT},
         ]
         for idx, mod in enumerate(modules):
             self._launcher_card(mod, y=260 + idx * 200)
@@ -390,7 +397,7 @@ class App:
 
         info = [
             "BEHAVIORAL ENGINE: LOADED",
-            "FATIGUE MODEL:      ACTIVE",
+            "FATIGUE MODEL:     ACTIVE",
             "COGNITIVE PAUSING: ENABLED",
             "────────────────────────────────",
             "CTRL+ALT+V: Start  |  ESC: Kill",
@@ -482,13 +489,17 @@ class App:
         T = THEME_KAHOOT
         c = self.canvas
 
+        # Navigation and Title Header
         self._back_btn()
         c.create_text(275, 80,  text="K A H O O T", font=("Impact", 44), fill=T["text"],   tags="ui")
         c.create_text(275, 128, text="NEXUS MODULE",  font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
+        
+        # Module Status Bar
         self.kahoot_status = c.create_text(275, 165, text="> READY",
                                             font=("Courier New", 13, "bold"), fill=T["rain_h"], tags="ui")
         c.create_line(80, 185, 470, 185, fill=T["dim"], width=1, tags="ui")
 
+        # Game PIN Input Box
         c.create_text(275, 225, text="GAME PIN", font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
         self.pin_var = tk.StringVar()
         pin_e = tk.Entry(
@@ -500,6 +511,7 @@ class App:
         )
         c.create_window(275, 258, window=pin_e, tags="ui")
 
+        # Nickname Input Box
         c.create_text(275, 298, text="NICKNAME", font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
         self.nick_var = tk.StringVar(value="NexusBot")
         nick_e = tk.Entry(
@@ -512,20 +524,10 @@ class App:
         c.create_window(275, 330, window=nick_e, tags="ui")
         c.create_line(80, 358, 470, 358, fill=T["dim"], width=1, tags="ui")
 
+        # Action Buttons (Linked securely to background threads)
         self._btn(275, 415, "▶  CONNECT",   self._kahoot_connect,  T["accent"], w=220, h=48)
         self._btn(275, 490, "⚡  AUTO-PLAY", self._kahoot_autoplay, T["rain_h"], w=220, h=48)
         self._btn(275, 565, "■  STOP",      self._kahoot_stop,      "#FF4444",   w=220, h=48)
-
-        c.create_line(80, 618, 470, 618, fill=T["dim"], width=1, tags="ui")
-        stub_lines = [
-            "MODULE STATUS: STUB — ADD YOUR LOGIC",
-            "connect()  /  answer()  /  run_auto()",
-            "──────────────────────────────────────",
-            "Fill in KahootEngine methods to activate",
-        ]
-        for i, line in enumerate(stub_lines):
-            c.create_text(275, 645 + i*32, text=line,
-                          font=("Courier New", 10, "bold"), fill=T["dim"], tags="ui")
 
     def _kahoot_status_cb(self, text, color):
         if hasattr(self, 'kahoot_status'):
