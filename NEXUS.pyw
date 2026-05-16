@@ -145,7 +145,6 @@ class NexusEngine:
             for word_idx, word in enumerate(words):
                 if self.stop_requested:
                     break
-                # Cognitive pause mechanics (Simulates reader pacing)
                 if word_idx > 0 and word_idx % random.randint(15, 40) == 0:
                     status_cb("> THINKING...", "#AA00FF")
                     time.sleep(random.uniform(1.2, 3.0))
@@ -165,7 +164,6 @@ class NexusEngine:
                     status_cb("> ACTIVE", THEME_NEXUS["rain_h"])
                     fatigue = 1 + (self.char_count / 8000)
                     
-                    # Error Generation Matrix
                     if char.lower() in self.NEIGHBORS and random.random() < ent:
                         pyautogui.write(random.choice(self.NEIGHBORS[char.lower()]))
                         time.sleep(random.uniform(0.15, 0.3))
@@ -176,7 +174,6 @@ class NexusEngine:
                     self.char_count += 1
                     delay = speed * wc * fatigue * random.uniform(0.6, 1.4)
                     
-                    # Punctuation Delay Parsing
                     if char in ".!?":
                         delay += random.uniform(0.3, 0.6)
                     elif char in ",;:":
@@ -189,28 +186,14 @@ class NexusEngine:
             self.lock.release()
             status_cb("> READY", THEME_NEXUS["accent"])
 
-# Kahoot Engine (Blank Canvas Skeletons)
+# Kahoot Engine Skeletons (Temporary Placeholder Space)
 class KahootEngine:
     def __init__(self):
-        self.is_running      = False
-        self.stop_requested = False
-
-    def connect(self, game_pin: str, nickname: str, status_cb):
-        # TODO: Implement connection protocols
-        pass
-
-    def answer(self, choice: int, status_cb):
-        # TODO: Implement answer array handling
-        pass
-
-    def run_auto(self, status_cb):
-        self.is_running = True
-        self.stop_requested = False
-        # TODO: Implement main polling routine loop
         self.is_running = False
 
-    def stop(self):
-        self.stop_requested = True
+    def temp_process(self, status_cb):
+        # Temporary placeholder logic loop
+        status_cb("> ENGINE INITIALIZED", THEME_KAHOOT["accent"])
 
 # Main GUI Window Controller
 class App:
@@ -344,7 +327,7 @@ class App:
 
         modules = [
             {"label": "N E X U S",  "sub": f"Behavioral Typing Engine  v{VERSION}", "color": THEME_LAUNCHER["accent"], "view": self.VIEW_NEXUS},
-            {"label": "K A H O O T","sub": "Game-Bot Module  [IN DEV]",                 "color": "#CC44FF",                 "view": self.VIEW_KAHOOT},
+            {"label": "K A H O O T","sub": "Custom Pipeline Canvas",                 "color": "#CC44FF",                 "view": self.VIEW_KAHOOT},
         ]
         for idx, mod in enumerate(modules):
             self._launcher_card(mod, y=260 + idx * 200)
@@ -499,65 +482,16 @@ class App:
                                             font=("Courier New", 13, "bold"), fill=T["rain_h"], tags="ui")
         c.create_line(80, 185, 470, 185, fill=T["dim"], width=1, tags="ui")
 
-        # Game PIN Input Box
-        c.create_text(275, 225, text="GAME PIN", font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
-        self.pin_var = tk.StringVar()
-        pin_e = tk.Entry(
-            self.root, textvariable=self.pin_var, width=16,
-            bg="#0D001A", fg=T["rain_h"], insertbackground=T["rain_h"],
-            font=("Courier New", 17, "bold"), relief="flat",
-            highlightthickness=2, highlightcolor=T["rain_h"],
-            highlightbackground=T["dim"], justify="center"
-        )
-        c.create_window(275, 258, window=pin_e, tags="ui")
-
-        # Nickname Input Box
-        c.create_text(275, 298, text="NICKNAME", font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
-        self.nick_var = tk.StringVar(value="NexusBot")
-        nick_e = tk.Entry(
-            self.root, textvariable=self.nick_var, width=16,
-            bg="#0D001A", fg=T["rain_h"], insertbackground=T["rain_h"],
-            font=("Courier New", 17, "bold"), relief="flat",
-            highlightthickness=2, highlightcolor=T["rain_h"],
-            highlightbackground=T["dim"], justify="center"
-        )
-        c.create_window(275, 330, window=nick_e, tags="ui")
-        c.create_line(80, 358, 470, 358, fill=T["dim"], width=1, tags="ui")
-
-        # Action Buttons (Linked securely to background threads)
-        self._btn(275, 415, "▶  CONNECT",   self._kahoot_connect,  T["accent"], w=220, h=48)
-        self._btn(275, 490, "⚡  AUTO-PLAY", self._kahoot_autoplay, T["rain_h"], w=220, h=48)
-        self._btn(275, 565, "■  STOP",      self._kahoot_stop,      "#FF4444",   w=220, h=48)
+        # Temporary Canvas Layout Guide Placeholder
+        c.create_text(275, 300, text="// CUSTOM PIPELINE CANVAS", font=("Courier New", 12, "bold"), fill=T["accent"], tags="ui")
+        c.create_text(275, 330, text="Ready for custom web parsing elements", font=("Courier New", 10), fill=T["text"], tags="ui")
+        
+        # Initialize temp layout footprint on screen entry
+        self.kahoot_eng.temp_process(self._kahoot_status_cb)
 
     def _kahoot_status_cb(self, text, color):
         if hasattr(self, 'kahoot_status'):
             self._status_update(self.kahoot_status, text, color)
-
-    def _kahoot_connect(self):
-        pin  = self.pin_var.get().strip()
-        nick = self.nick_var.get().strip() or "NexusBot"
-        if not pin:
-            self._kahoot_status_cb("> ENTER A GAME PIN FIRST", "#FFCC00")
-            return
-        threading.Thread(
-            target=self.kahoot_eng.connect,
-            args=(pin, nick, self._kahoot_status_cb),
-            daemon=True
-        ).start()
-
-    def _kahoot_autoplay(self):
-        if self.kahoot_eng.is_running:
-            self._kahoot_status_cb("> ALREADY RUNNING", "#FFCC00")
-            return
-        threading.Thread(
-            target=self.kahoot_eng.run_auto,
-            args=(self._kahoot_status_cb,),
-            daemon=True
-        ).start()
-
-    def _kahoot_stop(self):
-        self.kahoot_eng.stop()
-        self._kahoot_status_cb("> STOPPED", "#FF4444")
 
     def _setup_tray(self):
         img = Image.new("RGB", (64, 64), "#000000")
