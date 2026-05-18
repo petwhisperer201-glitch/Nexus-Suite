@@ -10,7 +10,7 @@
 # this software, the user assumes all structural responsibility.
 # =================================================================
 
-VERSION = "7.0.3"
+VERSION = "7.0.4"
 
 import subprocess
 import sys
