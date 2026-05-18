@@ -73,7 +73,7 @@ except:
 
 #Update system
 def check_for_updates():
-    RAW_GITHUB_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/New%20Text%20Document.py"
+    RAW_GITHUB_URL = "https://github.com/petwhisperer201-glitch/Nexus-Suite/blob/main/NEXUS.pyw"
     
     try:
         print("[NEXUS] Checking repository sync status...")
