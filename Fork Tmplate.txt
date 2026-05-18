@@ -1,9 +1,3 @@
-# If you want to modify this app pls place this at the top of your code
-
-
-
-
-
 # ==============================================================================
 # NEXUS MODULE SUITE - Custom Fork Build
 # Derived from the public project by petwhisperer201-glitch and The-Samri
