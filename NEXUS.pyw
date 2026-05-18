@@ -1,13 +1,16 @@
 # =================================================================
 # NEXUS MODULE SUITE - Behavioral Utility Tool
+# Copyright (c) 2026 petwhisperer201-glitch and The-Samri
+# 
 # Provided "AS IS" for educational and productivity purposes.
-# The owners (petwhisperer201-glitch, The-Samri) and their team 
-# are not responsible for misuse, academic penalties, or 
-# third-party platform bans.
-# By running this software, the user assumes all responsibility.
+# Distributed under the terms of the MIT Open Source License.
+#
+# The owners and their team are not responsible for misuse, 
+# academic penalties, or third-party platform bans. By running 
+# this software, the user assumes all structural responsibility.
 # =================================================================
 
-VERSION = "7.0.2"
+VERSION = "7.0.3"
 
 import subprocess
 import sys
