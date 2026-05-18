@@ -1,17 +1,14 @@
 # =================================================================
-# NEXUS MODULE SUITE - Combined Core Framework v6.9
+# NEXUS MODULE SUITE - Behavioral Utility Tool
 # Provided "AS IS" for educational and productivity purposes.
-# The owners (petwhisperer201-glitch, The-Samri) and their team
-# are not responsible for misuse, academic penalties, or
+# The owners (petwhisperer201-glitch, The-Samri) and their team 
+# are not responsible for misuse, academic penalties, or 
 # third-party platform bans.
 # By running this software, the user assumes all responsibility.
 # =================================================================
 
-VERSION = "6.9"
-PASTEBIN_RAW_URL = "https://pastebin.com/raw/nCLxGg4s"
-REPO_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/NEXUS.pyw"
+VERSION = "7.0"
 
-import tkinter as tk
 import subprocess
 import sys
 import os
@@ -20,75 +17,151 @@ import threading
 import re
 import random
 import json
+import tkinter as tk
+import urllib.request  # Used for handling background sync downloads
 
-# ── Framework Ecosystem Hooks ─────────────────────────────────────
-pyautogui  = None
-pyperclip  = None
-keyboard   = None
-Image      = None
-ImageDraw  = None
-pystray    = None
-item       = None
-gw         = None
-requests   = None
-Groq       = None
-websocket  = None
+# Universal Bootstrap for Dependencies
+def bootstrap():
+    libs = [
+        'Pillow', 'pyautogui', 'pyperclip', 'pynput', 
+        'pystray', 'pygetwindow', 'requests', 'selenium', 'webdriver-manager'
+    ]
+    for lib in libs:
+        try:
+            if lib == 'Pillow':
+                __import__('PIL')
+            else:
+                __import__(lib.lower())
+        except ImportError:
+            try:
+                print(f"Installing missing dependency: {lib}...")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", lib, "--user", "--quiet"])
+            except:
+                pass
 
-HAS_GROQ        = False
-HAS_FOCUS_LOGIC = False
+bootstrap()
 
-# ── Themes ────────────────────────────────────────────────────────
-THEME_LAUNCHER = {
-    "bg":    "#000000", "rain": "#002200", "rain_h": "#00FF41",
-    "accent":"#00F0FF", "text": "#FFFFFF", "dim":    "#444444",
-    "chars": "01NEXUS",
-}
+import pyautogui
+import pyperclip
+import requests
+from pynput import keyboard
+from pynput.keyboard import Controller as KeyboardController
+
+# Selenium Drivers and Selectors
+from selenium import webdriver
+from selenium.webdriver.edge.options import Options as EdgeOptions
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+pyautogui.FAILSAFE = True 
+pyautogui.PAUSE = 0
+
+if os.name == 'nt':
+    try:
+        import ctypes
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    except:
+        pass
+
+try:
+    import pygetwindow as gw
+    HAS_FOCUS_LOGIC = True
+except:
+    HAS_FOCUS_LOGIC = False
+
+#Update system
+def check_for_updates():
+    RAW_GITHUB_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/New%20Text%20Document.py"
+    
+    try:
+        print("[NEXUS] Checking repository sync status...")
+        req = urllib.request.Request(
+            RAW_GITHUB_URL, 
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        )
+        with urllib.request.urlopen(req, timeout=5) as response:
+            remote_code = response.read().decode('utf-8')
+            
+        # Scan the remote text for its current VERSION tag
+        match = re.search(r'VERSION\s*=\s*["\']([^"\']+)["\']', remote_code)
+        
+        if match:
+            remote_version = match.group(1)
+            if remote_version != VERSION:
+                print(f"[NEXUS] New update discovered: v{remote_version} (Current local: v{VERSION})")
+                print("[NEXUS] Rewriting local script matrix...")
+                
+                # Fetch currently executing file path destination and safely rewrite it
+                current_file_path = os.path.abspath(__file__)
+                with open(current_file_path, "w", encoding="utf-8") as f:
+                    f.write(remote_code)
+                    
+                print("[NEXUS] Update successfully injected! Please close and reopen the application.")
+                sys.exit(0)
+            else:
+                print("[NEXUS] Version check verified. Core is fully synchronized.")
+    except Exception as e:
+        print(f"[NEXUS] Update sequence bypassed: {e}")
+
+
 THEME_NEXUS = {
-    "bg":    "#000000", "rain": "#002200", "rain_h": "#00FF41",
-    "accent":"#00F0FF", "text": "#FFFFFF", "dim":    "#444444",
-    "chars": "01NEXUS",
-}
-THEME_KAHOOT = {
-    "bg":    "#050008", "rain": "#1A0033", "rain_h": "#CC44FF",
-    "accent":"#FF44CC", "text": "#F0D0FF", "dim":    "#4A2060",
-    "chars": "KAHOOT01?!ABCDE",
+    "bg":      "#000000",
+    "rain":    "#002200",
+    "rain_h":  "#00FF41",
+    "accent":  "#00F0FF",
+    "text":    "#FFFFFF",
+    "dim":     "#444444",
+    "chars":   "01NEXUS",
 }
 
-# ── Settings ──────────────────────────────────────────────────────
+THEME_KAHOOT = {
+    "bg":      "#0A0212",
+    "rain":    "#240046",
+    "rain_h":  "#E0AAFF",
+    "accent":  "#9D4EDD",
+    "text":    "#F7F4F9",
+    "dim":     "#3C096C",
+    "chars":   "▲▼◀▶◆■▲▼◆■",
+}
+
+THEME_LAUNCHER = {
+    "bg":      "#000000",
+    "rain":    "#002200",
+    "rain_h":  "#00FF41",
+    "accent":  "#00F0FF",
+    "text":    "#FFFFFF",
+    "dim":     "#444444",
+    "chars":   "01NEXUS",
+}
+
 SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".nexus_config.json")
 
-def save_settings(speed, errors, api_key=""):
+def save_settings(speed, errors):
     try:
         with open(SETTINGS_FILE, 'w') as f:
-            json.dump({'speed': float(speed), 'errors': int(errors), 'api_key': api_key}, f)
+            json.dump({'speed': float(speed), 'errors': int(errors)}, f)
     except:
         pass
 
 def load_settings():
-    settings = {'speed': 0.10, 'errors': 2, 'api_key': ""}
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, 'r') as f:
                 data = json.load(f)
-                settings['speed']   = data.get('speed',   0.10)
-                settings['errors']  = data.get('errors',  2)
-                settings['api_key'] = data.get('api_key', "")
+                return {
+                    'speed': data.get('speed', 0.10), 
+                    'errors': data.get('errors', 2)
+                }
         except:
             pass
-    # Try to pull API key from Pastebin
-    if requests and PASTEBIN_RAW_URL:
-        try:
-            response = requests.get(PASTEBIN_RAW_URL, timeout=4)
-            if response.status_code == 200:
-                fetched_key = response.text.strip()
-                if fetched_key:
-                    settings['api_key'] = fetched_key
-        except:
-            pass
-    return settings
+    return {'speed': 0.10, 'errors': 2}
 
 
-# ── Typing Engine ─────────────────────────────────────────────────
+
+# NEXUS TYPING ENGINE
+
 class NexusEngine:
     def __init__(self):
         self.is_typing      = False
@@ -100,37 +173,44 @@ class NexusEngine:
             'i':'ujko','j':'uikmn','k':'iolm','l':'opk','m':'njk','n':'bhjm','o':'pikl','p':'ol',
             'q':'was','r':'edft','s':'awdxz','t':'rfgy','u':'yhjkio','v':'cfgb','w':'qase',
             'x':'zsdc','y':'tghu','z':'asx','1':'2q','2':'1q3w','3':'2w4e','4':'3e5r','5':'4r6t',
-            '6':'5t7y','7':'6y8u','8':'7u9i','9':'8i0o','0':'9oip','-':'0p','=':'-',' ':'cvbnm',
+            '6':'5t7y','7':'6y8u','8':'7u9i','9':'8i0o','0':'9oip','-':'0p','=':'-',' ':'cvbnm'
         }
 
     def run(self, raw, speed, ent, status_cb):
-        if not pyautogui or not self.lock.acquire(blocking=False):
+        if not self.lock.acquire(blocking=False):
             return
         self.is_typing, self.stop_requested, self.char_count = True, False, 0
+
         target_window = None
-        if HAS_FOCUS_LOGIC and gw:
-            try: target_window = gw.getActiveWindow()
-            except: pass
+        if HAS_FOCUS_LOGIC:
+            try:
+                target_window = gw.getActiveWindow()
+            except:
+                pass
 
         status_cb("> ACTIVE", THEME_NEXUS["rain_h"])
         try:
             text  = re.sub(r'[^\x20-\x7E\n\r]', '', raw.replace('\xa0', ' '))
             words = text.split(' ')
             for word_idx, word in enumerate(words):
-                if self.stop_requested: break
+                if self.stop_requested:
+                    break
                 if word_idx > 0 and word_idx % random.randint(15, 40) == 0:
                     status_cb("> THINKING...", "#AA00FF")
                     time.sleep(random.uniform(1.2, 3.0))
                 wc = 0.8 if len(word) < 4 else 1.2
                 for char in word:
-                    if self.stop_requested: break
-                    if HAS_FOCUS_LOGIC and target_window and gw:
+                    if self.stop_requested:
+                        break
+                    if HAS_FOCUS_LOGIC and target_window:
                         try:
                             while gw.getActiveWindow() != target_window:
-                                if self.stop_requested: break
+                                if self.stop_requested:
+                                    break
                                 status_cb("> PAUSED (LOST FOCUS)", "#FFCC00")
                                 time.sleep(0.5)
-                        except: pass
+                        except:
+                            pass
                     status_cb("> ACTIVE", THEME_NEXUS["rain_h"])
                     fatigue = 1 + (self.char_count / 8000)
                     if char.lower() in self.NEIGHBORS and random.random() < ent:
@@ -141,8 +221,10 @@ class NexusEngine:
                     pyautogui.write(char)
                     self.char_count += 1
                     delay = speed * wc * fatigue * random.uniform(0.6, 1.4)
-                    if char in ".!?":  delay += random.uniform(0.3, 0.6)
-                    elif char in ",;:": delay += random.uniform(0.1, 0.3)
+                    if char in ".!?":
+                        delay += random.uniform(0.3, 0.6)
+                    elif char in ",;:":
+                        delay += random.uniform(0.1, 0.3)
                     time.sleep(delay)
                 pyautogui.write(' ')
                 time.sleep(speed * random.uniform(0.5, 1.0))
@@ -152,279 +234,238 @@ class NexusEngine:
             status_cb("> READY", THEME_NEXUS["accent"])
 
 
-# ── Kahoot CDP Engine ─────────────────────────────────────────────
+#KAHOOT ENGINE
 class KahootEngine:
     def __init__(self):
         self.is_running = False
-        self.ai_client  = None
+        self.stop_requested = False
+        self.driver = None
+        self.worker_thread = None
+        self.keyboard_controller = KeyboardController()
 
-    def _launch_browser_with_debugging(self):
-        paths = [
-            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-            os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
-            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-            r"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        ]
-        for path in paths:
-            if os.path.exists(path):
-                subprocess.Popen([path, "--remote-debugging-port=9222", "https://kahoot.it"])
-                return True
-        return False
-
-    def start_engine(self, api_key, status_cb):
-        if not HAS_GROQ or not Groq or not websocket or not requests:
-            status_cb("> LIBS DEPENDENCY ERROR", "#FF0000")
-            return False
-        if self.is_running: return True
-        try:
-            if not api_key:
-                status_cb("> API KEY MISSING", "#FFCC00")
-                return False
-            self.ai_client = Groq(api_key=api_key)
-        except Exception:
-            status_cb("> API AUTH ERROR", "#FF0000")
-            return False
+    def start_automation(self, target_url, browser_type, status_cb):
+        if self.is_running:
+            status_cb("> ALREADY RUNNING", "#FF3366")
+            return
+        
+        self.stop_requested = False
         self.is_running = True
-        status_cb("> CONNECTING TO BROWSER...", "#CC44FF")
-        threading.Thread(target=self._direct_hook_loop, args=(status_cb,), daemon=True).start()
-        return True
-
-    def stop_engine(self, status_cb):
-        self.is_running = False
-        status_cb("> PIPELINE DISCONNECTED", "#FF44CC")
-
-    def _direct_hook_loop(self, status_cb):
-        ws_conn            = None
-        last_question_text = None
-        while self.is_running:
-            if not ws_conn:
-                try:
-                    resp = requests.get("http://127.0.0.1:9222/json", timeout=2)
-                    tabs = resp.json()
-                    target_tab = next(
-                        (t for t in tabs if "kahoot.it" in t.get("url", "") or "kahoot" in t.get("title", "").lower()),
-                        None
-                    )
-                    if target_tab and "webSocketDebuggerUrl" in target_tab:
-                        ws_conn = websocket.create_connection(target_tab["webSocketDebuggerUrl"])
-                        status_cb("> DIRECT HOOK: CONNECTED", "#00FF41")
-                    else:
-                        status_cb("> LOOKING FOR KAHOOT TAB...", "#FFCC00")
-                        self._launch_browser_with_debugging()
-                        time.sleep(3)
-                        continue
-                except Exception:
-                    status_cb("> LAUNCHING SYSTEM BROWSER...", "#FFCC00")
-                    self._launch_browser_with_debugging()
-                    time.sleep(4)
-                    continue
-
-            try:
-                js_scraper = """
-                (function() {
-                    const qEl = document.querySelector('[data-functional-selector="question-block"]') || document.querySelector('h1');
-                    if (!qEl) return null;
-                    const choices = Array.from(document.querySelectorAll('[data-functional-selector^="answer-"]'))
-                                         .map(el => el.innerText || el.textContent)
-                                         .filter(Boolean);
-                    return JSON.stringify({ question: qEl.innerText || qEl.textContent, choices: choices });
-                })()
-                """
-                payload = {"id": 1, "method": "Runtime.evaluate",
-                           "params": {"expression": js_scraper, "returnByValue": True}}
-                ws_conn.send(json.dumps(payload))
-                result_raw = json.loads(ws_conn.recv())
-                eval_res   = result_raw.get("result", {}).get("result", {}).get("value")
-
-                if eval_res:
-                    data    = json.loads(eval_res)
-                    q_text  = data.get("question", "").strip()
-                    choices = data.get("choices", [])
-                    if q_text and q_text != last_question_text:
-                        last_question_text = q_text
-                        status_cb("> ANALYZING QUESTION...", "#AA00FF")
-                        best_option = self._query_analysis(q_text, choices)
-                        # Point Decay Engine — throttle to rarely hit 1000 pts
-                        time.sleep(random.uniform(1.8, 4.5))
-                        if best_option:
-                            # 15% engineered human-misslip rate
-                            if random.random() < 0.15 and len(choices) > 1:
-                                wrong = [c for c in choices if c.strip().lower() != best_option.strip().lower()]
-                                if wrong:
-                                    status_cb(f"> ANSWER (MISSLIP): {random.choice(wrong).upper()}", "#FFCC00")
-                                    continue
-                            status_cb(f"> ANSWER: {best_option.upper()}", "#00FF41")
-                        else:
-                            status_cb("> ANALYSIS FAILED", "#FF0000")
-                else:
-                    if last_question_text is not None:
-                        status_cb("> AWAITING NEXT QUESTION", "#CC44FF")
-                        last_question_text = None
-            except Exception:
-                ws_conn = None
-                time.sleep(1)
-            time.sleep(0.8)
-
-    def _query_analysis(self, question, choices):
-        if not question or not choices or not self.ai_client: return None
-        prompt = (
-            f"Analyze the following quiz question and choose the correct answer from the provided list.\n"
-            f"Question: {question}\n"
-            f"Options: {', '.join(choices)}\n"
-            f"Output strictly as JSON: {{\"correct_choice\": \"exact_text_string\"}}"
+        
+        self.worker_thread = threading.Thread(
+            target=self._automation_worker, 
+            args=(target_url, browser_type, status_cb), 
+            daemon=True
         )
+        self.worker_thread.start()
+
+    def _automation_worker(self, target_url, browser_type, status_cb):
+        status_cb(f"> INITIALIZING {browser_type.upper()}...", "#FFAA00")
+        
         try:
-            response = self.ai_client.chat.completions.create(
-                model="llama3-8b-8192",
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-            )
-            return json.loads(response.choices[0].message.content).get("correct_choice")
-        except Exception:
-            return None
+            if browser_type.lower() == "chrome":
+                chrome_options = ChromeOptions()
+                chrome_options.add_argument("--disable-gpu")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--window-size=1280,720")
+                chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                chrome_options.add_experimental_option('useAutomationExtension', False)
+                chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                self.driver = webdriver.Chrome(options=chrome_options)
+            else:
+                edge_options = EdgeOptions()
+                edge_options.add_argument("--disable-gpu")
+                edge_options.add_argument("--no-sandbox")
+                edge_options.add_argument("--disable-dev-shm-usage")
+                edge_options.add_argument("--window-size=1280,720")
+                edge_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                edge_options.add_experimental_option('useAutomationExtension', False)
+                edge_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                self.driver = webdriver.Edge(options=edge_options)
+                
+            status_cb("> CONNECTING TO TARGET...", "#00F0FF")
+            self.driver.get(target_url)
+            
+            last_scraped_question = ""
+            
+            while not self.stop_requested:
+                try:
+                    choice_selectors = [
+                        '[data-functional-selector^="answer-"]', 
+                        '.quiz-answer-choice', 
+                        '[class*="AnswerText"]', 
+                        'button[id^="answer-"]',
+                        'div[class*="CardContent"]'
+                    ]
+                    
+                    active_choices_present = False
+                    for c_sel in choice_selectors:
+                        try:
+                            test_els = self.driver.find_elements(By.CSS_SELECTOR, c_sel)
+                            if test_els and any(el.text.strip() for el in test_els):
+                                active_choices_present = True
+                                break
+                        except:
+                            pass
+                            
+                    if not active_choices_present:
+                        status_cb("> WAITING FOR GAME SCREEN", "#444444")
+                        time.sleep(0.2)
+                        continue
+
+                    question_text = ""
+                    question_selectors = [
+                        '[data-functional-selector="question-title"]',
+                        '[data-functional-selector="block-title"]',
+                        '.quiz-question-title',
+                        'main h1',
+                        'h1[class*="Title"]'
+                    ]
+                    
+                    for selector in question_selectors:
+                        try:
+                            el = self.driver.find_element(By.CSS_SELECTOR, selector)
+                            if el and el.text.strip():
+                                question_text = el.text.strip()
+                                break
+                        except:
+                            pass
+
+                    if question_text and question_text != last_scraped_question:
+                        status_cb("> NEW QUESTION DETECTED", "#00FF41")
+                        
+                        choice_elements = []
+                        for c_sel in choice_selectors:
+                            try:
+                                choice_elements = self.driver.find_elements(By.CSS_SELECTOR, c_sel)
+                                if choice_elements and any(el.text.strip() for el in choice_elements):
+                                    break
+                            except:
+                                pass
+                                    
+                        choices = [el.text.strip() for el in choice_elements if el.text.strip()]
+                        
+                        if choices:
+                            last_scraped_question = question_text
+                            print(f"[NEXUS] Scraped Question: {question_text}")
+                            print(f"[NEXUS] Found choices: {choices}")
+                            status_cb("> ROUTING VIA SECURE RELAY...", "#FFAA00")
+                            
+                            answer = self._get_groq_decision(question_text, choices)
+                            
+                            if answer:
+                                print(f"[NEXUS] Relay Engine Target: {answer}")
+                                status_cb(f"> CHOICE: {answer[:15]}...", "#00F0FF")
+                                self._execute_human_keypress(answer, choices, status_cb)
+                            else:
+                                status_cb("> RELAY TRANSMIT TIMEOUT", "#FF3366")
+                                
+                except Exception as e:
+                    pass
+                time.sleep(0.2)
+                
+        except Exception as e:
+            status_cb(f"> ERROR: {str(e)[:18]}", "#FF3366")
+        finally:
+            self.cleanup()
+            status_cb("> CORE TERMINATED", "#3C096C")
+
+    def _get_groq_decision(self, question, choices):
+        # Secure endpoint configuration routing over Render
+        relay_url = "https://nexus-relay-zdj6.onrender.com/ask"
+        
+        payload = {
+            "question": question,
+            "choices": choices
+        }
+        
+        try:
+            response = requests.post(relay_url, json=payload, timeout=9.0)
+            if response.status_code == 200:
+                return response.json().get("answer")
+            else:
+                print(f"[RELAY ERROR] Proxy response failed: {response.status_code}")
+        except Exception as e:
+            print(f"[RELAY EXCEPTION] Link lost or broken: {e}")
+        return None
+
+    def _execute_human_keypress(self, calculated_answer, choices, status_cb):
+        human_delay = random.uniform(0.4, 1.2)
+        time.sleep(human_delay)
+        
+        executed = False
+        for idx, choice_text in enumerate(choices):
+            if calculated_answer.lower() in choice_text.lower() or choice_text.lower() in calculated_answer.lower():
+                key_map = ["1", "2", "3", "4"]
+                if idx < len(key_map):
+                    target_key = key_map[idx]
+                    
+                    self.keyboard_controller.press(target_key)
+                    self.keyboard_controller.release(target_key)
+                    
+                    print(f"[INPUT SUCCESS] Key matrix fired: [{target_key}]")
+                    status_cb(f"> STRUCT KEY [{target_key}] FIRED", "#00FF41")
+                    executed = True
+                    break
+        
+        if not executed:
+            status_cb("> STR_MATCH MISMATCH", "#FFCC00")
+
+    def cleanup(self):
+        self.stop_requested = True
+        if self.driver:
+            try:
+                self.driver.quit()
+            except Exception:
+                pass
+            self.driver = None
+        self.is_running = False
 
 
-# ── Main Application ──────────────────────────────────────────────
+#APP INTERFACE
 class App:
     VIEW_LOADING  = "loading"
     VIEW_LAUNCHER = "launcher"
     VIEW_NEXUS    = "nexus"
     VIEW_KAHOOT   = "kahoot"
-    VIEW_SETUP    = "setup"
 
     def __init__(self, root: tk.Tk):
-        self.root         = root
-        self.nexus_eng    = NexusEngine()
-        self.kahoot_eng   = KahootEngine()
+        self.root        = root
+        self.nexus_eng   = NexusEngine()
+        self.kahoot_eng  = KahootEngine()
         self.current_view = self.VIEW_LOADING
         self.drops        = []
         self._theme       = THEME_LAUNCHER
-        self.key_entry    = None
 
-        self.val_speed = 0.10
-        self.val_ent   = 2
-        self.api_key   = ""
+        saved            = load_settings()
+        self.val_speed   = saved['speed']
+        self.val_ent     = saved['errors']
 
-        self.root.title("NEXUS // CORE SUITE MODULE")
+        self.root.title("NEXUS  //  MODULE SUITE")
         self.root.geometry("550x820")
         self.root.configure(bg="#000000")
         self.root.resizable(False, False)
         self.root.attributes("-topmost", True)
-        self.root.protocol("WM_DELETE_WINDOW", self._hide)
 
         self.canvas = tk.Canvas(self.root, bg="#000000", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
 
         self._init_drops(THEME_LAUNCHER)
         self._draw_rain()
+        
         self._show_loading_screen()
+        self._start_global_master_hotkeys()
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
-    # ── Loading & Bootstrap ───────────────────────────────────────
-    def _show_loading_screen(self):
-        c = self.canvas
-        c.create_text(275, 260, text="N E X U S",    font=("Impact", 52),         fill=THEME_LAUNCHER["text"],   tags="ui")
-        c.create_text(275, 315, text="MODULE SUITE", font=("Courier New", 14, "bold"), fill=THEME_LAUNCHER["accent"], tags="ui")
-        self.loading_status = c.create_text(
-            275, 430, text="> VERIFYING ECOSYSTEM...",
-            font=("Courier New", 11, "bold"), fill=THEME_LAUNCHER["accent"], tags="ui"
-        )
-        threading.Thread(target=self._bootstrap_dependencies, daemon=True).start()
+    def _on_close(self):
+        self.kahoot_eng.cleanup()
+        self.root.destroy()
 
-    def _bootstrap_dependencies(self):
-        global pyautogui, pyperclip, keyboard, Image, ImageDraw, pystray, item, \
-               gw, requests, Groq, websocket, HAS_GROQ, HAS_FOCUS_LOGIC
-
-        libs = ['Pillow', 'pyautogui', 'pyperclip', 'pynput', 'pystray',
-                'pygetwindow', 'requests', 'groq', 'websocket-client']
-        for lib in libs:
-            self._status_update(self.loading_status, f"> SCANNING MODULE: {lib.upper()}", THEME_LAUNCHER["accent"])
-            try:
-                __import__('PIL' if lib == 'Pillow' else ('websocket' if lib == 'websocket-client' else lib.lower()))
-            except ImportError:
-                self._status_update(self.loading_status, f"> INSTALLING: {lib.upper()}...", "#FFCC00")
-                try: subprocess.check_call([sys.executable, "-m", "pip", "install", lib, "--user", "--quiet"])
-                except: pass
-
-        try: import pyautogui as pg;              pyautogui = pg;  pyautogui.FAILSAFE = True; pyautogui.PAUSE = 0
-        except: pass
-        try: import pyperclip as pc;              pyperclip = pc
-        except: pass
-        try: from pynput import keyboard as kb;   keyboard  = kb
-        except: pass
-        try:
-            from PIL import Image as im, ImageDraw as imd
-            Image = im; ImageDraw = imd
-        except: pass
-        try:
-            import pystray as ps; from pystray import MenuItem as mi
-            pystray = ps; item = mi
-        except: pass
-        try:
-            import pygetwindow as gw_mod
-            gw = gw_mod; HAS_FOCUS_LOGIC = True
-        except: pass
-        try: import requests as req;              requests  = req
-        except: pass
-        try: import websocket as ws;              websocket = ws
-        except: pass
-        try:
-            from groq import Groq as groq_cls
-            Groq = groq_cls; HAS_GROQ = True
-        except: pass
-
-        # Windows DPI fix
-        if os.name == 'nt':
-            try:
-                import ctypes; ctypes.windll.shcore.SetProcessDpiAwareness(1)
-            except: pass
-
-        saved          = load_settings()
-        self.val_speed = saved['speed']
-        self.val_ent   = saved['errors']
-        self.api_key   = saved['api_key']
-
-        self.root.after(0, self._setup_tray)
-        threading.Thread(target=self._run_update_check, daemon=True).start()
-
-        if not self.api_key:
-            self.root.after(0, self._show_setup)
-        else:
-            self.root.after(0, self._show_launcher)
-
-    # ── Auto-Updater ──────────────────────────────────────────────
-    def _run_update_check(self):
-        if not requests: return
-        try:
-            r = requests.get(REPO_URL, timeout=5)
-            if r.status_code == 200:
-                match = re.search(r'VERSION\s*=\s*"([^"]+)"', r.text)
-                if match and match.group(1) != VERSION:
-                    with open(__file__, "w", encoding="utf-8") as f:
-                        f.write(r.text)
-                    os.execv(sys.executable, [sys.executable] + sys.argv)
-        except: pass
-
-    # ── System Tray ───────────────────────────────────────────────
-    def _setup_tray(self):
-        if not all([Image, ImageDraw, pystray, item]): return
-        try:
-            img = Image.new("RGB", (64, 64), "#000000")
-            d   = ImageDraw.Draw(img)
-            d.ellipse([10, 10, 54, 54], outline="#00F0FF", width=3)
-            d.text((18, 12), "N", fill="#00F0FF", font_size=38)
-            self.tray = pystray.Icon(
-                "NEXUS", img, "NEXUS Module Suite",
-                (item("Show", self._show), item("Exit", lambda: os._exit(0)))
-            )
-            threading.Thread(target=self.tray.run, daemon=True).start()
-        except: pass
-
-    # ── Matrix Rain ───────────────────────────────────────────────
     def _init_drops(self, theme):
         self._theme = theme
         self.drops  = [
-            {"x": x, "y": random.randint(-800, 0), "v": random.randint(5, 12),
+            {"x": x, "y": random.randint(-800, 0),
+             "v": random.randint(5, 12),
              "chars": [random.choice(theme["chars"]) for _ in range(12)]}
             for x in range(0, 550, 20)
         ]
@@ -434,39 +475,37 @@ class App:
         self.canvas.delete("rain")
         for d in self.drops:
             d["y"] += d["v"]
-            if d["y"] > 850: d["y"] = -180
+            if d["y"] > 850:
+                d["y"] = -180
             for i, ch in enumerate(d["chars"]):
                 yp = d["y"] - i * 15
                 if 0 < yp < 820:
                     color = t["rain_h"] if i == 0 else t["rain"]
-                    self.canvas.create_text(d["x"], yp, text=ch, fill=color, font=("Courier", 10), tags="rain")
+                    self.canvas.create_text(
+                        d["x"], yp, text=ch, fill=color,
+                        font=("Courier", 10), tags="rain"
+                    )
         self.canvas.tag_lower("rain")
         self.root.after(30, self._draw_rain)
 
-    # ── UI Helpers ────────────────────────────────────────────────
     def _clear_ui(self):
         self.canvas.delete("ui")
-        if self.key_entry:
-            self.key_entry.destroy()
-            self.key_entry = None
         for w in self.root.winfo_children():
-            if isinstance(w, tk.Entry):
+            if isinstance(w, (tk.Entry,)):
                 w.destroy()
 
     def _set_bg(self, color):
         self.canvas.configure(bg=color)
         self.root.configure(bg=color)
 
-    def _status_update(self, tag_id, text, color):
-        self.root.after(0, lambda: self.canvas.itemconfig(tag_id, text=text, fill=color))
-
-    def _btn(self, x, y, text, cmd, color, w=200, h=45, custom_tag="ui"):
+    def _btn(self, x, y, text, cmd, color, w=200, h=45):
         c = self.canvas
-        x1, y1, x2, y2 = x - w//2, y - h//2, x + w//2, y + h//2
-        rect = c.create_rectangle(x1, y1, x2, y2, outline=color, fill=self._theme["bg"], width=2, tags=custom_tag)
-        lbl  = c.create_text(x, y, text=text, font=("Courier New", 12, "bold"), fill=color, tags=custom_tag)
+        x1, y1 = x - w//2, y - h//2
+        x2, y2 = x + w//2, y + h//2
+        rect = c.create_rectangle(x1, y1, x2, y2, outline=color, fill=self._theme["bg"], width=2, tags="ui")
+        lbl  = c.create_text(x, y, text=text, font=("Courier New", 12, "bold"), fill=color, tags="ui")
         bg   = self._theme["bg"]
-        def enter(_): c.itemconfig(rect, fill="#1A0033"); c.itemconfig(lbl, fill="#FFFFFF")
+        def enter(_): c.itemconfig(rect, fill="#120024" if self.current_view == self.VIEW_KAHOOT else "#0D001A"); c.itemconfig(lbl, fill="#FFFFFF")
         def leave(_): c.itemconfig(rect, fill=bg);       c.itemconfig(lbl, fill=color)
         def click(_): cmd()
         for it in (rect, lbl):
@@ -475,112 +514,160 @@ class App:
             c.tag_bind(it, "<Button-1>", click)
 
     def _back_btn(self):
-        c    = self.canvas
-        rect = c.create_rectangle(15, 12, 95, 38, outline=self._theme["dim"], fill=self._theme["bg"], width=1, tags="ui")
-        lbl  = c.create_text(55, 25, text="◀ BACK", font=("Courier New", 9, "bold"), fill=self._theme["dim"], tags="ui")
+        c = self.canvas
+        rect = c.create_rectangle(15, 12, 95, 38, outline=self._theme["dim"],
+                                   fill=self._theme["bg"], width=1, tags="ui")
+        lbl  = c.create_text(55, 25, text="◀  BACK",
+                              font=("Courier New", 9, "bold"),
+                              fill=self._theme["dim"], tags="ui")
         def enter(_): c.itemconfig(rect, outline=self._theme["accent"]); c.itemconfig(lbl, fill=self._theme["accent"])
         def leave(_): c.itemconfig(rect, outline=self._theme["dim"]);    c.itemconfig(lbl, fill=self._theme["dim"])
-        def click(_):
-            if self.current_view == self.VIEW_KAHOOT: self.kahoot_eng.stop_engine(self._kahoot_status_cb)
-            self._show_launcher()
+        def click(_): self._show_launcher()
         for it in (rect, lbl):
-            c.tag_bind(it, "<Enter>", enter); c.tag_bind(it, "<Leave>", leave); c.tag_bind(it, "<Button-1>", click)
+            c.tag_bind(it, "<Enter>",    enter)
+            c.tag_bind(it, "<Leave>",    leave)
+            c.tag_bind(it, "<Button-1>", click)
 
-    # ── Setup View ────────────────────────────────────────────────
-    def _show_setup(self):
-        self.current_view = self.VIEW_SETUP
-        self._clear_ui(); self._init_drops(THEME_LAUNCHER); self._set_bg(THEME_LAUNCHER["bg"])
+    def _status_update(self, tag_id, text, color):
+        self.root.after(0, lambda: self.canvas.itemconfig(tag_id, text=text, fill=color))
+
+    def _show_loading_screen(self):
+        self.current_view = self.VIEW_LOADING
+        self._clear_ui()
+        self._set_bg("#000000")
         c = self.canvas
-        c.create_text(275, 140, text="INITIAL SETUP", font=("Impact", 46), fill=THEME_LAUNCHER["text"],   tags="ui")
-        c.create_text(275, 280, text="GROQ API KEY",  font=("Courier New", 11, "bold"), fill=THEME_LAUNCHER["accent"], tags="ui")
-        self.key_entry = tk.Entry(
-            self.root, font=("Courier New", 12), bg="#050505",
-            fg="#00F0FF", insertbackground="#FFFFFF", justify="center"
-        )
-        self.key_entry.place(x=75, y=340, width=400, height=35)
-        def save_and_continue():
-            key = self.key_entry.get().strip()
-            if key:
-                self.api_key = key
-                save_settings(self.val_speed, self.val_ent, self.api_key)
-                self._show_launcher()
-        self._btn(275, 430, "▶ SAVE & CONTINUE", save_and_continue, THEME_LAUNCHER["accent"], w=250, h=45)
 
-    # ── Launcher View ─────────────────────────────────────────────
+        c.create_text(275, 260, text="N E X U S", font=("Impact", 54), fill="#FFFFFF", tags="ui")
+        c.create_text(275, 320, text="CORE COMPILATION SYSTEM", font=("Courier New", 11, "bold"), fill="#00F0FF", tags="ui")
+        
+        c.create_rectangle(100, 390, 450, 410, outline="#444444", width=2, fill="#050505", tags="ui")
+        progress_bar = c.create_rectangle(104, 394, 104, 406, outline="", fill="#00FF41", tags="ui")
+        percentage_lbl = c.create_text(275, 435, text="0%", font=("Courier New", 12, "bold"), fill="#FFFFFF", tags="ui")
+        log_lbl = c.create_text(275, 470, text="Initializing environment...", font=("Courier New", 10), fill="#444444", tags="ui")
+
+        loading_steps = [
+            (0.15, 12, "Loading core binary nodes..."),
+            (0.25, 28, "Mounting global dependency hooks..."),
+            (0.40, 39, "Synchronizing dynamic hotkey system layers..."),
+            (0.20, 51, "Parsing behavioral fatigue profiles..."),
+            (0.35, 67, "Optimizing automated latency matrices..."),
+            (0.50, 84, "Injecting system keyboard emulators..."),
+            (0.30, 93, "Verifying pipeline configuration vectors..."),
+            (0.25, 100, "BOOT COMPLETE. READY.")
+        ]
+
+        def step_sequence(index, current_pct):
+            if index >= len(loading_steps):
+                self.root.after(400, self._show_launcher)
+                return
+
+            delay, target_pct, message = loading_steps[index]
+            c.itemconfig(log_lbl, text=message, fill="#00F0FF" if target_pct == 100 else "#888888")
+            
+            def animate_fraction(step_pct):
+                if step_pct > target_pct:
+                    self.root.after(int(delay * 1000), lambda: step_sequence(index + 1, target_pct))
+                    return
+                
+                x_end = 104 + (342 * (step_pct / 100.0))
+                c.coords(progress_bar, 104, 394, x_end, 406)
+                c.itemconfig(percentage_lbl, text=f"{int(step_pct)}%")
+                
+                self.root.after(15, lambda: animate_fraction(step_pct + 1))
+
+            animate_fraction(current_pct)
+
+        self.root.after(500, lambda: step_sequence(0, 0))
+
     def _show_launcher(self):
         self.current_view = self.VIEW_LAUNCHER
-        self._clear_ui(); self._init_drops(THEME_LAUNCHER); self._set_bg(THEME_LAUNCHER["bg"])
+        self._clear_ui()
+        self._init_drops(THEME_LAUNCHER)
+        self._set_bg(THEME_LAUNCHER["bg"])
         c = self.canvas
-        c.create_text(275, 80,  text="N E X U S",      font=("Impact", 46),           fill=THEME_LAUNCHER["text"],   tags="ui")
-        c.create_text(275, 128, text="MODULE LAUNCHER", font=("Courier New", 13, "bold"), fill=THEME_LAUNCHER["accent"], tags="ui")
+
+        c.create_text(275, 80,  text="N E X U S", font=("Impact", 46), fill=THEME_LAUNCHER["text"],   tags="ui")
+        c.create_text(275, 128, text="MODULE SUITE",  font=("Courier New", 13, "bold"), fill=THEME_LAUNCHER["accent"], tags="ui")
         c.create_line(80, 152, 470, 152, fill=THEME_LAUNCHER["dim"], width=1, tags="ui")
+
         modules = [
-            {"label": "N E X U S",   "sub": f"Behavioral Typing Engine  v{VERSION}", "color": THEME_LAUNCHER["accent"], "view": self.VIEW_NEXUS},
-            {"label": "K A H O O T", "sub": "Automated DevTools CDP Hook",           "color": "#CC44FF",                 "view": self.VIEW_KAHOOT},
+            {"label": "N E X U S",  "sub": f"Behavioral Typing Engine  v{VERSION}", "color": THEME_LAUNCHER["accent"], "view": self.VIEW_NEXUS},
+            {"label": "K A H O O T","sub": "Secure Token Keypress Matrix",          "color": "#9D4EDD",                  "view": self.VIEW_KAHOOT},
         ]
-        for idx, mod in enumerate(modules): self._launcher_card(mod, y=240 + idx * 210)
-        c.create_line(80, 740, 470, 740, fill=THEME_LAUNCHER["dim"], width=1, tags="ui")
-        c.create_text(275, 770, text="SELECT A MODULE TO LAUNCH", font=("Courier New", 10), fill=THEME_LAUNCHER["dim"], tags="ui")
+        for idx, mod in enumerate(modules):
+            self._launcher_card(mod, y=260 + idx * 200)
 
     def _launcher_card(self, mod, y):
-        c = self.canvas; col = mod["color"]; x1, x2, h, cl = 80, 470, 160, 14
+        c = self.canvas
+        col   = mod["color"]
+        x1, x2, h = 80, 470, 155
+        cl = 14
         c.create_rectangle(x1, y, x2, y+h, outline=col, width=2, fill="#050505", tags="ui")
-        # Corner accent lines (from v6.2)
         for cx, cy, dx, dy in [(x1,y,1,1),(x2,y,-1,1),(x1,y+h,1,-1),(x2,y+h,-1,-1)]:
             c.create_line(cx, cy, cx+dx*cl, cy, fill=col, width=2, tags="ui")
             c.create_line(cx, cy, cx, cy+dy*cl, fill=col, width=2, tags="ui")
-        lbl = c.create_text(275, y+45,  text=mod["label"], font=("Impact", 34),           fill=col,                      tags="ui")
-        sub = c.create_text(275, y+82,  text=mod["sub"],   font=("Courier New", 10, "bold"), fill=THEME_LAUNCHER["dim"],    tags="ui")
-        btn = c.create_rectangle(175, y+105, 375, y+145, outline=col, fill="#000000", width=2, tags="ui")
-        bl  = c.create_text(275, y+125, text="▶ LAUNCH",  font=("Courier New", 12, "bold"), fill=col,                      tags="ui")
-        def enter(_): c.itemconfig(btn, fill="#1A0033"); c.itemconfig(bl, fill="#FFFFFF")
-        def leave(_): c.itemconfig(btn, fill="#000000"); c.itemconfig(bl, fill=col)
-        def click(_): self._show_nexus() if mod["view"] == self.VIEW_NEXUS else self._show_kahoot()
-        for it in (lbl, sub, btn, bl):
-            c.tag_bind(it, "<Enter>", enter); c.tag_bind(it, "<Leave>", leave); c.tag_bind(it, "<Button-1>", click)
+        lbl = c.create_text(275, y+48, text=mod["label"], font=("Impact", 34), fill=col, tags="ui")
+        sub = c.create_text(275, y+82, text=mod["sub"], font=("Courier New", 10, "bold"), fill=THEME_LAUNCHER["dim"], tags="ui")
+        by1, by2 = y+100, y+140
+        btn = c.create_rectangle(175, by1, 375, by2, outline=col, fill="#000000", width=2, tags="ui")
+        bl  = c.create_text(275, (by1+by2)//2, text="▶  OPEN", font=("Courier New", 12, "bold"), fill=col, tags="ui")
 
-    # ── Nexus View ────────────────────────────────────────────────
+        def enter(_): c.itemconfig(btn, fill="#0a0a0a"); c.itemconfig(bl, fill="#FFFFFF")
+        def leave(_): c.itemconfig(btn, fill="#000000"); c.itemconfig(bl, fill=col)
+        def click(_):
+            if mod["view"] == self.VIEW_NEXUS:
+                self._show_nexus()
+            else:
+                self._show_kahoot()
+        for it in (lbl, sub, btn, bl):
+            c.tag_bind(it, "<Enter>",    enter)
+            c.tag_bind(it, "<Leave>",    leave)
+            c.tag_bind(it, "<Button-1>", click)
+
     def _show_nexus(self):
         self.current_view = self.VIEW_NEXUS
-        self._clear_ui(); self._init_drops(THEME_NEXUS); self._set_bg(THEME_NEXUS["bg"])
-        T = THEME_NEXUS; c = self.canvas
+        self._clear_ui()
+        self._init_drops(THEME_NEXUS)
+        self._set_bg(THEME_NEXUS["bg"])
+        T = THEME_NEXUS
+        c = self.canvas
+
         self._back_btn()
-        c.create_text(275, 80,  text="N E X U S", font=("Impact", 46),           fill=T["text"],   tags="ui")
-        c.create_text(275, 130, text=f"v{VERSION}", font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
-        self.nexus_status = c.create_text(
-            275, 165, text="> READY", font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui"
-        )
+        c.create_text(275, 80,  text="N E X U S",   font=("Impact", 46), fill=T["text"],   tags="ui")
+        c.create_text(275, 130, text=f"v{VERSION}",         font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
+        self.nexus_status = c.create_text(275, 165, text="> READY",
+                                           font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
         c.create_line(80, 185, 470, 185, fill=T["dim"], width=1, tags="ui")
 
         info = [
-            "BEHAVIORAL ENGINE:  LOADED",
-            "FATIGUE MODEL:       ACTIVE",
-            "COGNITIVE PAUSING:  ENABLED",
+            "BEHAVIORAL ENGINE: LOADED",
+            "FATIGUE MODEL:    ACTIVE",
+            "COGNITIVE PAUSING: ENABLED",
             "────────────────────────────────",
-            "CTRL+ALT+V: Start  |  ESC: Kill",
-            "ALT+C: Hide / Show UI",
+            "CTRL+ALT+V: Start  |  ESC: Kill | ALT+C: Hide"
         ]
         for i, line in enumerate(info):
-            c.create_text(275, 490 + i*34, text=line, font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
+            c.create_text(275, 490 + i*34, text=line,
+                          font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
 
         self._create_slider(275, T)
         self._create_slider(375, T, is_errors=True)
-        self._btn(275, 430, "▶ START (CTRL+ALT+V)", self._nexus_trigger, T["accent"], w=300, h=45)
-        self._start_nexus_hotkeys()
 
-        c.create_text(275, 750, text="AUTO-IGNITES IN 5s ON OPEN", font=("Courier New", 9), fill=T["dim"], tags="ui")
-        self.root.after(5000, self._nexus_trigger)
+        self._btn(275, 430, "▶  START  (CTRL+ALT+V)", self._nexus_trigger, T["accent"], w=300, h=45)
 
     def _create_slider(self, y, T, is_errors=False):
         c     = self.canvas
-        attr  = "val_ent"   if is_errors else "val_speed"
+        attr  = "val_ent" if is_errors else "val_speed"
         label = "ERRORS (%)" if is_errors else "SPEED (s/char)"
-        v_min, v_max = (0, 15) if is_errors else (0.01, 0.40)
-        t_s, t_e     = 120, 430
+        v_min = 0   if is_errors else 0.01
+        v_max = 15  if is_errors else 0.40
+        t_s, t_e = 120, 430
+
         c.create_text(275, y-28, text=label, font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
         c.create_line(t_s, y, t_e, y, fill="#333", width=6, tags="ui")
-        hand   = c.create_rectangle(0, 0, 1, 1, fill=T["text"], tags="ui")
+        hand  = c.create_rectangle(0,0,1,1, fill=T["text"], tags="ui")
         val_id = c.create_text(275, y+26, text="", font=("Courier New", 10, "bold"), fill=T["text"], tags="ui")
+
         def update(pos):
             v = v_min + (pos - t_s) / (t_e - t_s) * (v_max - v_min)
             v = max(v_min, min(v_max, v))
@@ -591,92 +678,150 @@ class App:
                 wpm = int(12 / v) if v > 0 else 999
                 c.itemconfig(val_id, text=f"{v:.2f}s  ({wpm} WPM)")
             c.coords(hand, pos-6, y-14, pos+6, y+14)
-            save_settings(self.val_speed, self.val_ent, self.api_key)
+            save_settings(self.val_speed, self.val_ent)
+
         def drag(e):
-            if abs(e.y - y) < 60: update(max(t_s, min(t_e, e.x)))
+            if abs(e.y - y) < 60:
+                update(max(t_s, min(t_e, e.x)))
+
         curr = getattr(self, attr)
-        update(t_s + (curr - v_min) / (v_max - v_min) * (t_e - t_s))
+        p    = t_s + (curr - v_min) / (v_max - v_min) * (t_e - t_s)
+        update(p)
         c.bind("<B1-Motion>", drag, add="+")
         c.bind("<Button-1>",  drag, add="+")
 
     def _nexus_status_cb(self, text, color):
-        if hasattr(self, 'nexus_status'): self._status_update(self.nexus_status, text, color)
+        if hasattr(self, 'nexus_status'):
+            self._status_update(self.nexus_status, text, color)
 
     def _nexus_trigger(self):
-        if self.current_view != self.VIEW_NEXUS: return
-        if not self.nexus_eng.is_typing and pyperclip:
+        if self.current_view != self.VIEW_NEXUS:
+            return
+            
+        if not self.nexus_eng.is_typing:
             threading.Thread(
                 target=self.nexus_eng.run,
                 args=(pyperclip.paste(), self.val_speed, self.val_ent / 100, self._nexus_status_cb),
                 daemon=True
             ).start()
 
-    def _start_nexus_hotkeys(self):
-        if not keyboard: return
+    def _start_global_master_hotkeys(self):
         if hasattr(self, '_hk_listener'):
-            try: self._hk_listener.stop()
-            except: pass
+            try:
+                self._hk_listener.stop()
+            except:
+                pass
+        
         hk = keyboard.GlobalHotKeys({
             '<ctrl>+<alt>+v': self._nexus_trigger,
-            '<alt>+c':        lambda: self.root.after(0, self._toggle_visibility),
-            '<esc>':          lambda: setattr(self.nexus_eng, 'stop_requested', True),
+            '<esc>':          self._native_kill_trigger,
+            '<alt>+c':        self._toggle_visibility,
         })
         self._hk_listener = hk
         threading.Thread(target=hk.run, daemon=True).start()
 
-    # ── Kahoot View ───────────────────────────────────────────────
+    def _native_kill_trigger(self):
+        if self.current_view == self.VIEW_NEXUS:
+            setattr(self.nexus_eng, 'stop_requested', True)
+
+    def _toggle_visibility(self):
+        def action():
+            if self.root.state() == "normal":
+                self.root.withdraw()
+            else:
+                self.root.deiconify()
+                self.root.attributes("-topmost", True)
+        
+        self.root.after(0, action)
+
     def _show_kahoot(self):
         self.current_view = self.VIEW_KAHOOT
-        self._clear_ui(); self._init_drops(THEME_KAHOOT); self._set_bg(THEME_KAHOOT["bg"])
-        T = THEME_KAHOOT; c = self.canvas
+        self._clear_ui()
+        self._init_drops(THEME_KAHOOT)
+        self._set_bg(THEME_KAHOOT["bg"])
+        T = THEME_KAHOOT
+        c = self.canvas
+
         self._back_btn()
-        c.create_text(275, 80,  text="K A H O O T",          font=("Impact", 44),           fill=T["text"],   tags="ui")
-        c.create_text(275, 128, text="DIRECT CDP PIPELINE MODULE", font=("Courier New", 11, "bold"), fill=T["accent"], tags="ui")
-        self.kahoot_status = c.create_text(
-            275, 185, text="> PIPELINE READY", font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui"
-        )
-        self._render_kahoot_toggle_btn()
-        c.create_line(80, 460, 470, 460, fill=T["dim"], width=1, tags="ui")
-        instructions = [
-            "OPERATING GUIDELINES:",
-            "1. Click 'ACTIVATE AI PIPELINE' to hook browser.",
-            "2. Play the game inside the new debugging browser tab.",
-            "3. Answer throttling is ACTIVE (Delays answers 1.8s - 4.5s).",
-            "4. Human Mimicry Module is ACTIVE (15% mistake profile applied).",
+        
+        c.create_text(275, 75, text="KAHOOT", font=("Impact", 46), fill=T["text"], tags="ui")
+        c.create_text(275, 120, text="VISION & TOAST NOTIFICATION RUNTIME", font=("Courier New", 10, "bold"), fill=T["accent"], tags="ui")
+        
+        self.kahoot_status = c.create_text(275, 160, text="> READY", font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
+        c.create_line(80, 185, 470, 185, fill=T["dim"], width=1, tags="ui")
+
+        c.create_text(275, 215, text="SELECT BROWSER ENGINE", font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
+        
+        self.selected_browser = "edge"
+        btn_edge = c.create_rectangle(120, 240, 260, 280, outline=T["accent"], fill=T["dim"], width=2, tags="ui")
+        lbl_edge = c.create_text(190, 260, text="EDGE", font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
+        
+        btn_chrome = c.create_rectangle(290, 240, 430, 280, outline=T["dim"], fill="#000000", width=2, tags="ui")
+        lbl_chrome = c.create_text(360, 260, text="CHROME", font=("Courier New", 11, "bold"), fill=T["dim"], tags="ui")
+
+        def select_edge(_):
+            self.selected_browser = "edge"
+            c.itemconfig(btn_edge, fill=T["dim"], outline=T["accent"])
+            c.itemconfig(lbl_edge, fill=T["text"])
+            c.itemconfig(btn_chrome, fill="#000000", outline=T["dim"])
+            c.itemconfig(lbl_chrome, fill=T["dim"])
+
+        def select_chrome(_):
+            self.selected_browser = "chrome"
+            c.itemconfig(btn_chrome, fill=T["dim"], outline=T["accent"])
+            c.itemconfig(lbl_chrome, fill=T["text"])
+            c.itemconfig(btn_edge, fill="#000000", outline=T["dim"])
+            c.itemconfig(lbl_edge, fill=T["dim"])
+
+        c.tag_bind(btn_edge, "<Button-1>", select_edge)
+        c.tag_bind(lbl_edge, "<Button-1>", select_edge)
+        c.tag_bind(btn_chrome, "<Button-1>", select_chrome)
+        c.tag_bind(lbl_chrome, "<Button-1>", select_chrome)
+
+        c.create_text(275, 320, text="GAME PIN OR TARGET URL", font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
+        
+        self.url_entry = tk.Entry(self.root, font=("Courier New", 12, "bold"), bg="#11052C", fg="#FFFFFF",
+                                  insertbackground="#FFFFFF", justify="center", bd=1, relief="flat")
+        self.canvas.create_window(275, 355, window=self.url_entry, width=320, height=35, tags="ui")
+        self.url_entry.insert(0, "9601068")
+
+        def start_k_auto():
+            raw_input = self.url_entry.get().strip()
+            if not raw_input:
+                self._kahoot_status_cb("> PIN/URL EMPTY", "#FF3366")
+                return
+            
+            if raw_input.isdigit():
+                target_destination = f"https://kahoot.it/?pin={raw_input}"
+            else:
+                target_destination = raw_input if raw_input.startswith("http") else f"https://{raw_input}"
+                
+            self.kahoot_eng.start_automation(target_destination, self.selected_browser, self._kahoot_status_cb)
+
+        self._btn(275, 430, "▶  LAUNCH ENGINE", start_k_auto, T["text"], w=300, h=45)
+        self._btn(275, 495, "■  STOP ENGINE", lambda: setattr(self.kahoot_eng, 'stop_requested', True), "#FF3366", w=300, h=45)
+
+        warn_box = c.create_rectangle(80, 560, 470, 620, outline="#FF3366", width=2, fill="#1A000A", tags="ui")
+        c.create_text(275, 578, text="▲ CRITICAL HOST CONFIGURATION REQUIRED", font=("Courier New", 10, "bold"), fill="#FF3366", tags="ui")
+        c.create_text(275, 600, text="THE HOST MUST TURN 'QUESTIONS ON SCREEN' ON!", font=("Courier New", 9, "bold"), fill=T["text"], tags="ui")
+
+        pipelines = [
+            "• Absolute loop latency optimized under 10 seconds.",
+            "• Alpha: Live string fallback parsing matrix.",
+            "• Beta: Automated silent Vision screen capture fallback.",
+            "• Llama-Vision reads layout answers if elements are missing."
         ]
-        for i, line in enumerate(instructions):
-            align, xp, fw, fc = ("center", 275, "bold", T["accent"]) if i == 0 else ("w", 55, "normal", T["text"])
-            c.create_text(xp, 490 + i*32, text=line, anchor=align, font=("Courier New", 9, fw), fill=fc, tags="ui")
-
-    def _render_kahoot_toggle_btn(self):
-        self.canvas.delete("k_btn")
-        if not self.kahoot_eng.is_running:
-            self._btn(275, 360, "▶ ACTIVATE AI PIPELINE", self._toggle_kahoot_state, THEME_KAHOOT["accent"], w=320, h=50, custom_tag="k_btn")
-        else:
-            self._btn(275, 360, "■ DEACTIVATE PIPELINE",  self._toggle_kahoot_state, "#FF0055",              w=320, h=50, custom_tag="k_btn")
-
-    def _toggle_kahoot_state(self):
-        if not self.kahoot_eng.is_running:
-            self.kahoot_eng.start_engine(self.api_key, self._kahoot_status_cb)
-        else:
-            self.kahoot_eng.stop_engine(self._kahoot_status_cb)
-        self._render_kahoot_toggle_btn()
+        for idx, line in enumerate(pipelines):
+            c.create_text(90, 655 + idx * 28, text=line, font=("Courier New", 9, "bold"), fill="#888888", anchor="w", tags="ui")
 
     def _kahoot_status_cb(self, text, color):
         if hasattr(self, 'kahoot_status'):
             self._status_update(self.kahoot_status, text, color)
-            if any(kw in text for kw in ("HOOK", "DISCONNECTED", "READY")):
-                self.root.after(0, self._render_kahoot_toggle_btn)
-
-    # ── Window Management ─────────────────────────────────────────
-    def _hide(self):             self.root.withdraw()
-    def _show(self):             self.root.deiconify(); self.root.attributes("-topmost", True)
-    def _toggle_visibility(self):
-        if self.root.winfo_viewable(): self._hide()
-        else:                          self._show()
-
 
 if __name__ == "__main__":
+    # Fire the sync auto-updater validation layer immediately upon application startup
+    check_for_updates()
+    
     root = tk.Tk()
-    app  = App(root)
+    app = App(root)
     root.mainloop()
