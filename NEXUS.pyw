@@ -7,7 +7,7 @@
 # By running this software, the user assumes all responsibility.
 # =================================================================
 
-VERSION = "7.0"
+VERSION = "7.0.1"
 
 import subprocess
 import sys
@@ -161,7 +161,6 @@ def load_settings():
 
 
 # NEXUS TYPING ENGINE
-
 class NexusEngine:
     def __init__(self):
         self.is_typing      = False
@@ -181,13 +180,6 @@ class NexusEngine:
             return
         self.is_typing, self.stop_requested, self.char_count = True, False, 0
 
-        target_window = None
-        if HAS_FOCUS_LOGIC:
-            try:
-                target_window = gw.getActiveWindow()
-            except:
-                pass
-
         status_cb("> ACTIVE", THEME_NEXUS["rain_h"])
         try:
             text  = re.sub(r'[^\x20-\x7E\n\r]', '', raw.replace('\xa0', ' '))
@@ -202,15 +194,10 @@ class NexusEngine:
                 for char in word:
                     if self.stop_requested:
                         break
-                    if HAS_FOCUS_LOGIC and target_window:
-                        try:
-                            while gw.getActiveWindow() != target_window:
-                                if self.stop_requested:
-                                    break
-                                status_cb("> PAUSED (LOST FOCUS)", "#FFCC00")
-                                time.sleep(0.5)
-                        except:
-                            pass
+                    
+                    # 🟢 REMOVED WINDOW FOCUS RESTRICTIONS
+                    # This allows continuous execution even when the UI layout structure is completely hidden.
+                    
                     status_cb("> ACTIVE", THEME_NEXUS["rain_h"])
                     fatigue = 1 + (self.char_count / 8000)
                     if char.lower() in self.NEIGHBORS and random.random() < ent:
@@ -282,7 +269,7 @@ class KahootEngine:
                 edge_options.add_experimental_option('useAutomationExtension', False)
                 edge_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 self.driver = webdriver.Edge(options=edge_options)
-                
+            
             status_cb("> CONNECTING TO TARGET...", "#00F0FF")
             self.driver.get(target_url)
             
@@ -371,7 +358,6 @@ class KahootEngine:
             status_cb("> CORE TERMINATED", "#3C096C")
 
     def _get_groq_decision(self, question, choices):
-        # Secure endpoint configuration routing over Render
         relay_url = "https://nexus-relay-zdj6.onrender.com/ask"
         
         payload = {
@@ -506,7 +492,7 @@ class App:
         lbl  = c.create_text(x, y, text=text, font=("Courier New", 12, "bold"), fill=color, tags="ui")
         bg   = self._theme["bg"]
         def enter(_): c.itemconfig(rect, fill="#120024" if self.current_view == self.VIEW_KAHOOT else "#0D001A"); c.itemconfig(lbl, fill="#FFFFFF")
-        def leave(_): c.itemconfig(rect, fill=bg);       c.itemconfig(lbl, fill=color)
+        def leave(_): c.itemconfig(rect, fill=bg); c.itemconfig(lbl, fill=color)
         def click(_): cmd()
         for it in (rect, lbl):
             c.tag_bind(it, "<Enter>",    enter)
@@ -515,13 +501,10 @@ class App:
 
     def _back_btn(self):
         c = self.canvas
-        rect = c.create_rectangle(15, 12, 95, 38, outline=self._theme["dim"],
-                                   fill=self._theme["bg"], width=1, tags="ui")
-        lbl  = c.create_text(55, 25, text="◀  BACK",
-                              font=("Courier New", 9, "bold"),
-                              fill=self._theme["dim"], tags="ui")
+        rect = c.create_rectangle(15, 12, 95, 38, outline=self._theme["dim"], fill=self._theme["bg"], width=1, tags="ui")
+        lbl  = c.create_text(55, 25, text="◀  BACK", font=("Courier New", 9, "bold"), fill=self._theme["dim"], tags="ui")
         def enter(_): c.itemconfig(rect, outline=self._theme["accent"]); c.itemconfig(lbl, fill=self._theme["accent"])
-        def leave(_): c.itemconfig(rect, outline=self._theme["dim"]);    c.itemconfig(lbl, fill=self._theme["dim"])
+        def leave(_): c.itemconfig(rect, outline=self._theme["dim"]); c.itemconfig(lbl, fill=self._theme["dim"])
         def click(_): self._show_launcher()
         for it in (rect, lbl):
             c.tag_bind(it, "<Enter>",    enter)
@@ -635,8 +618,7 @@ class App:
         self._back_btn()
         c.create_text(275, 80,  text="N E X U S",   font=("Impact", 46), fill=T["text"],   tags="ui")
         c.create_text(275, 130, text=f"v{VERSION}",         font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
-        self.nexus_status = c.create_text(275, 165, text="> READY",
-                                           font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
+        self.nexus_status = c.create_text(275, 165, text="> READY", font=("Courier New", 13, "bold"), fill=T["accent"], tags="ui")
         c.create_line(80, 185, 470, 185, fill=T["dim"], width=1, tags="ui")
 
         info = [
@@ -647,8 +629,7 @@ class App:
             "CTRL+ALT+V: Start  |  ESC: Kill | ALT+C: Hide"
         ]
         for i, line in enumerate(info):
-            c.create_text(275, 490 + i*34, text=line,
-                          font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
+            c.create_text(275, 490 + i*34, text=line, font=("Courier New", 11, "bold"), fill=T["text"], tags="ui")
 
         self._create_slider(275, T)
         self._create_slider(375, T, is_errors=True)
@@ -695,9 +676,8 @@ class App:
             self._status_update(self.nexus_status, text, color)
 
     def _nexus_trigger(self):
-        if self.current_view != self.VIEW_NEXUS:
-            return
-            
+        # 🟢 MODIFIED VIEW RESTRICTION
+        # Triggering allowed even when launcher view switches to hidden state
         if not self.nexus_eng.is_typing:
             threading.Thread(
                 target=self.nexus_eng.run,
@@ -721,8 +701,9 @@ class App:
         threading.Thread(target=hk.run, daemon=True).start()
 
     def _native_kill_trigger(self):
-        if self.current_view == self.VIEW_NEXUS:
-            setattr(self.nexus_eng, 'stop_requested', True)
+        # 🟢 REMOVED SCREEN VIEW CONSTRAINT
+        # Allows killing the typing thread instantly when the interface window is hidden.
+        setattr(self.nexus_eng, 'stop_requested', True)
 
     def _toggle_visibility(self):
         def action():
@@ -731,7 +712,6 @@ class App:
             else:
                 self.root.deiconify()
                 self.root.attributes("-topmost", True)
-        
         self.root.after(0, action)
 
     def _show_kahoot(self):
@@ -819,7 +799,6 @@ class App:
             self._status_update(self.kahoot_status, text, color)
 
 if __name__ == "__main__":
-    # Fire the sync auto-updater validation layer immediately upon application startup
     check_for_updates()
     
     root = tk.Tk()
