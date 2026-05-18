@@ -21,7 +21,7 @@ Nexus is a behavioral utility suite for automated typing and game interaction. I
 
 ## 🍴 FORKING & CUSTOM EDITS
 If you intend to copy, fork, or edit this project on your own GitHub account, please review the required structural parameters:
-- **Review Code Notes:** Ensure you read and include the fork metadata headers provided inside the source files to maintain clear development lanes. You can find the exact block copy template in the [Fork Tmplate.txt](Fork Tmplate.txt) file.
+- **Review Code Notes:** Ensure you read and include the fork metadata headers provided inside the source files to maintain clear development lanes. You can find the exact block copy template in the [Fork Template.txt](Fork Template.txt) file.
 - **Maintain Core Attribution:** Keep the original copyright notices intact to properly credit the foundational layout.
 - **Preserve Liability Shields:** Any custom branches must retain the "AS IS" operational clauses to protect both the original developers and individual fork maintainers from liability. Refer to the separate `LICENSE` file for the full open-source legal text.
 
