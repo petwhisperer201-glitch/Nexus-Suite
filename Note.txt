@@ -1,0 +1,18 @@
+# If you want to modify this app pls place this at the top of your code
+
+
+
+
+
+# ==============================================================================
+# NEXUS MODULE SUITE - Custom Fork Build
+# Derived from the public project by petwhisperer201-glitch and The-Samri
+# ==============================================================================
+# Original Core Architecture: Copyright (c) 2026 petwhisperer201-glitch, The-Samri
+# Fork Modifications & Edits: Copyright (c) 2026 [Your Username]
+#
+# Licensed under the terms of the MIT Open Source License.
+# This software is provided "AS IS", without warranty of any kind, express or 
+# implied. In no event shall the original authors or modifiers be held liable 
+# for any account bans, academic penalties, or damages resulting from this code.
+# ==============================================================================
