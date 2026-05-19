@@ -1,16 +1,23 @@
 # =================================================================
 # NEXUS MODULE SUITE - Behavioral Utility Tool & Launcher
 # Copyright (c) 2026 petwhisperer201-glitch and The-Samri
-# 
+# 
 # Provided "AS IS" for educational and productivity purposes.
 # Distributed under the terms of the MIT Open Source License.
 # =================================================================
 
+VERSION = "1.0.0"
+
 import subprocess
 import sys
 import importlib
+import urllib.request
+import threading
+import tkinter.messagebox as messagebox
 
+# =================================================================
 # 1. AUTOMATIC DEPENDENCY CHECKER & INSTALLER
+# =================================================================
 REQUIRED_PACKAGES = {
     "pyautogui": "pyautogui",
     "pyperclip": "pyperclip",
@@ -43,11 +50,38 @@ def bootstrap_dependencies():
 # Run the installer setup before loading the rest of the application
 bootstrap_dependencies()
 
+
 # =================================================================
-# 2. CORE APPLICATION CODE
+# 2. SAFE VERSION CHECKER
+# =================================================================
+def check_for_updates():
+    # Use the raw URL to read text content safely
+    raw_url = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/Nexus%20light(typing%20moudle).pwy"
+    
+    try:
+        # Fetch the remote script content with a short timeout
+        with urllib.request.urlopen(raw_url, timeout=5) as response:
+            remote_code = response.read().decode('utf-8')
+            
+            # Simple check to see if your current version string exists in the latest code
+            if f'VERSION = "{VERSION}"' not in remote_code:
+                print("[*] A new update is available on GitHub.")
+                # Show a non-blocking GUI alert to the user
+                messagebox.showinfo(
+                    "Update Available", 
+                    "A new version of Nexus Suite is available.\nPlease visit the GitHub repository to download the latest version."
+                )
+            else:
+                print("[+] Nexus Suite is up to date.")
+    except Exception as e:
+        # Fail gracefully if there is no internet connection or the repository is down
+        print(f"[-] Could not check for updates: {e}")
+
+
+# =================================================================
+# 3. CORE APPLICATION CODE
 # =================================================================
 import tkinter as tk
-import threading
 import pyautogui
 import pyperclip
 import random
@@ -112,8 +146,12 @@ class FinalEliteTool:
         self.status_bar = tk.Frame(self.root, height=3, bg=COLORS["status_ready"])
         self.status_bar.pack(fill="x", side="bottom")
 
+        # Starts global hotkeys in a background thread
         self.hk = keyboard.GlobalHotKeys({'<f8>': self.toggle_visibility, '<ctrl>+<alt>+v': self.trigger, '<esc>': self.stop})
         threading.Thread(target=self.hk.run, daemon=True).start()
+
+        # Run the update check asynchronously so the interface remains responsive
+        threading.Thread(target=check_for_updates, daemon=True).start()
 
     def set_speed(self, s):
         self.overdrive_mode = False
