@@ -1,14 +1,51 @@
-#---------------------------------------------------------------------------------------
-# Name:        module1
-# Purpose:
-#
-# Author:      Lucas
-#
-# Created:     18/05/2026
-# Copyright:   (c) Lucas 2026
-# Licence:     <your licence>
-#---------------------------------------------------------------------------------------
+# =================================================================
+# NEXUS MODULE SUITE - Behavioral Utility Tool & Launcher
+# Copyright (c) 2026 petwhisperer201-glitch and The-Samri
+# 
+# Provided "AS IS" for educational and productivity purposes.
+# Distributed under the terms of the MIT Open Source License.
+# =================================================================
 
+import subprocess
+import sys
+import importlib
+
+# 1. AUTOMATIC DEPENDENCY CHECKER & INSTALLER
+REQUIRED_PACKAGES = {
+    "pyautogui": "pyautogui",
+    "pyperclip": "pyperclip",
+    "pynput": "pynput"
+}
+
+def bootstrap_dependencies():
+    print("[*] Nexus Module Suite: Checking dependencies...")
+    missing_packages = []
+
+    for module_name, pip_name in REQUIRED_PACKAGES.items():
+        try:
+            importlib.import_module(module_name)
+        except ImportError:
+            print(f"[!] Missing dependency: {pip_name}")
+            missing_packages.append(pip_name)
+
+    if missing_packages:
+        print(f"[*] Installing missing packages: {', '.join(missing_packages)}...")
+        try:
+            # Executes pip install cleanly using the current Python executable
+            subprocess.check_call([sys.executable, "-m", "pip", "install", *missing_packages])
+            print("[+] Environment successfully provisioned.")
+        except subprocess.CalledProcessError as e:
+            print(f"[-] Critical Error: Failed to install dependencies automatically.\nDetails: {e}")
+            sys.exit(1)
+    else:
+        print("[+] All dependencies verified.")
+
+# Run the installer setup before loading the rest of the application
+bootstrap_dependencies()
+
+# =================================================================
+# 2. CORE APPLICATION CODE
+# =================================================================
 import tkinter as tk
 import threading
 import pyautogui
@@ -127,23 +164,14 @@ class FinalEliteTool:
                 idx += 1
                 continue
 
-            # --- INCREASED DYNAMIC SWING LOGIC (+15 / -15) ---
-            # Every 1.0 to 2.5 seconds (more often), pick a new target speed mood
             if time.time() - last_mood_change > random.uniform(1.0, 2.5):
-                # Bigger swings for more noticeable human-like rhythm
                 target_wpm = self.selected_wpm + random.choice([-15, -10, -5, 0, 5, 10, 15])
                 last_mood_change = time.time()
 
-            # Slightly faster "Fade" transition to match the frequent swings
             cur_wpm = (cur_wpm * 0.70) + (target_wpm * 0.30)
-
-            # DIALED BACK CALIBRATION: Multiplier lowered to 14.5 to slow down raw typing speed
             char_delay = 60 / (cur_wpm * 14.5)
-
-            # Word Bursts (Speed up for letters, drag for spaces)
             rhythm = 0.8 if char.isalnum() else 1.7
 
-            # Delayed Realization Error
             if char.lower() in keys and random.random() < 0.015:
                 pyautogui.write(random.choice(keys[char.lower()]))
                 time.sleep(char_delay)
@@ -151,19 +179,16 @@ class FinalEliteTool:
                 for lc in lookahead:
                     pyautogui.write(lc)
                     time.sleep(char_delay)
-                time.sleep(random.uniform(0.4, 0.7)) # Realization
+                time.sleep(random.uniform(0.4, 0.7)) 
                 for _ in range(len(lookahead) + 1):
                     pyautogui.press('backspace')
                     time.sleep(0.04)
                 continue
 
-            # Sentence thinking pause
             if char in ".,!?" and random.random() < 0.4:
                 time.sleep(random.uniform(0.3, 0.8))
 
-            # Execute
             pyautogui.write(char)
-            # Apply momentum-based speed with tight jitter
             time.sleep(char_delay * rhythm * random.uniform(0.96, 1.04))
             idx += 1
 
