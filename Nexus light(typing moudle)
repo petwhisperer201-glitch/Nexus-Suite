@@ -1,0 +1,176 @@
+#---------------------------------------------------------------------------------------
+# Name:        module1
+# Purpose:
+#
+# Author:      Lucas
+#
+# Created:     18/05/2026
+# Copyright:   (c) Lucas 2026
+# Licence:     <your licence>
+#---------------------------------------------------------------------------------------
+
+import tkinter as tk
+import threading
+import pyautogui
+import pyperclip
+import random
+import time
+import re
+from pynput import keyboard
+
+# Styling
+COLORS = {
+    "bg": "#FFFFFF",
+    "btn": "#F1F5F9",
+    "accent": "#0091FF",
+    "overdrive": "#FF4B2B",
+    "text": "#2D3748",
+    "status_ready": "#E2E8F0",
+    "status_active": "#0091FF",
+    "status_wait": "#F6AD55"
+}
+
+class FinalEliteTool:
+    def __init__(self, root):
+        self.root = root
+        self.root.geometry("340x80")
+        self.root.attributes("-topmost", True)
+        self.root.configure(bg=COLORS["bg"])
+        self.root.title("")
+
+        self.is_typing = False
+        self.stop_requested = False
+        self.is_hidden = False
+        self.overdrive_mode = False
+        self.selected_wpm = 75
+
+        content = tk.Frame(self.root, bg=COLORS["bg"], padx=5, pady=5)
+        content.pack(fill="both")
+
+        btn_frame = tk.Frame(content, bg=COLORS["bg"])
+        btn_frame.pack(fill="x", pady=2)
+
+        self.btns = {}
+        for speed in [30, 50, 75, 100, 125]:
+            b = tk.Button(btn_frame, text=str(speed), command=lambda s=speed: self.set_speed(s),
+                          bg=COLORS["btn"], fg=COLORS["text"], relief="flat",
+                          font=("Segoe UI", 8, "bold"), width=4)
+            b.pack(side="left", padx=2)
+            self.btns[speed] = b
+
+        self.ovd_btn = tk.Button(btn_frame, text="OVD", command=self.toggle_overdrive,
+                                 bg=COLORS["btn"], fg=COLORS["text"], relief="flat",
+                                 font=("Segoe UI", 8, "bold"), width=4)
+        self.ovd_btn.pack(side="left", padx=2)
+
+        self.set_speed(75)
+
+        bottom = tk.Frame(content, bg=COLORS["bg"])
+        bottom.pack(fill="x", pady=2)
+        tk.Label(bottom, text="F8: Hide | ESC: Stop", font=("Segoe UI", 7), bg=COLORS["bg"], fg="#A0AEC0").pack(side="left")
+        self.start_btn = tk.Button(bottom, text="START ENGINE", command=self.trigger, bg=COLORS["accent"],
+                                   fg="white", font=("Segoe UI", 7, "bold"), relief="flat", padx=10)
+        self.start_btn.pack(side="right")
+
+        self.status_bar = tk.Frame(self.root, height=3, bg=COLORS["status_ready"])
+        self.status_bar.pack(fill="x", side="bottom")
+
+        self.hk = keyboard.GlobalHotKeys({'<f8>': self.toggle_visibility, '<ctrl>+<alt>+v': self.trigger, '<esc>': self.stop})
+        threading.Thread(target=self.hk.run, daemon=True).start()
+
+    def set_speed(self, s):
+        self.overdrive_mode = False
+        self.selected_wpm = s
+        for speed, btn in self.btns.items():
+            btn.config(bg=COLORS["accent"] if speed == s else COLORS["btn"], fg="white" if speed == s else COLORS["text"])
+        self.ovd_btn.config(bg=COLORS["btn"], fg=COLORS["text"])
+
+    def toggle_overdrive(self):
+        self.overdrive_mode = True
+        for btn in self.btns.values(): btn.config(bg=COLORS["btn"], fg=COLORS["text"])
+        self.ovd_btn.config(bg=COLORS["overdrive"], fg="white")
+
+    def toggle_visibility(self):
+        if self.is_hidden: self.root.deiconify()
+        else: self.root.withdraw()
+        self.is_hidden = not self.is_hidden
+
+    def stop(self):
+        self.stop_requested = True
+        self.status_bar.config(bg="#F56565")
+
+    def trigger(self):
+        if not self.is_typing: threading.Thread(target=self.worker, daemon=True).start()
+
+    def worker(self):
+        self.is_typing, self.stop_requested = True, False
+        self.status_bar.config(bg=COLORS["status_wait"])
+        time.sleep(3.0)
+        self.status_bar.config(bg=COLORS["status_active"] if not self.overdrive_mode else COLORS["overdrive"])
+
+        text = pyperclip.paste()
+        text = re.sub(r'[^\x20-\x7E\n\r]', '', text.replace('\xa0', ' '))
+        keys = {'a':'qwsz','b':'vghn','c':'xdfv','d':'erfcx','e':'rdsw','f':'rtgvc','g':'tyhbv','h':'yujn','i':'u8ko','j':'hknm','k':'jlim','l':'kop;','m':'njk,'}
+
+        idx = 0
+        cur_wpm = float(self.selected_wpm)
+        target_wpm = cur_wpm
+        last_mood_change = time.time()
+
+        while idx < len(text):
+            if self.stop_requested: break
+            char = text[idx]
+
+            if self.overdrive_mode:
+                pyautogui.write(char)
+                time.sleep(0.008)
+                idx += 1
+                continue
+
+            # --- INCREASED DYNAMIC SWING LOGIC (+15 / -15) ---
+            # Every 1.0 to 2.5 seconds (more often), pick a new target speed mood
+            if time.time() - last_mood_change > random.uniform(1.0, 2.5):
+                # Bigger swings for more noticeable human-like rhythm
+                target_wpm = self.selected_wpm + random.choice([-15, -10, -5, 0, 5, 10, 15])
+                last_mood_change = time.time()
+
+            # Slightly faster "Fade" transition to match the frequent swings
+            cur_wpm = (cur_wpm * 0.70) + (target_wpm * 0.30)
+
+            # DIALED BACK CALIBRATION: Multiplier lowered to 14.5 to slow down raw typing speed
+            char_delay = 60 / (cur_wpm * 14.5)
+
+            # Word Bursts (Speed up for letters, drag for spaces)
+            rhythm = 0.8 if char.isalnum() else 1.7
+
+            # Delayed Realization Error
+            if char.lower() in keys and random.random() < 0.015:
+                pyautogui.write(random.choice(keys[char.lower()]))
+                time.sleep(char_delay)
+                lookahead = text[idx+1:idx+3]
+                for lc in lookahead:
+                    pyautogui.write(lc)
+                    time.sleep(char_delay)
+                time.sleep(random.uniform(0.4, 0.7)) # Realization
+                for _ in range(len(lookahead) + 1):
+                    pyautogui.press('backspace')
+                    time.sleep(0.04)
+                continue
+
+            # Sentence thinking pause
+            if char in ".,!?" and random.random() < 0.4:
+                time.sleep(random.uniform(0.3, 0.8))
+
+            # Execute
+            pyautogui.write(char)
+            # Apply momentum-based speed with tight jitter
+            time.sleep(char_delay * rhythm * random.uniform(0.96, 1.04))
+            idx += 1
+
+        self.is_typing = False
+        self.status_bar.config(bg=COLORS["status_ready"])
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = FinalEliteTool(root)
+    root.mainloop()
