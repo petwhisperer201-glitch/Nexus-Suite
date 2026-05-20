@@ -4,7 +4,7 @@ Nexus is a cross-platform behavioral utility suite for automated typing and game
 
 ---
 
-## 📦 MODULE OVERVIEW
+## MODULE OVERVIEW
 
 This repository contains two variations of the engine depending on your specific use case:
 
@@ -13,19 +13,19 @@ This repository contains two variations of the engine depending on your specific
 
 ---
 
-## 🎮 CONTROLS & SHORTCUT MAPS
+## CONTROLS & SHORTCUT MAPS
 
 The keyboard listening layout configures itself automatically based on your active operating system:
 
 ### 1. Full Engine (`NEXUS.pyw`)
-| Action | 🪟 Windows | 🍏 macOS | 🐧 Linux |
+| Action | Windows | macOS | Linux |
 | :--- | :--- | :--- | :--- |
 | **Start Typing Engine** | `CTRL + ALT + V` | `CMD + SHIFT + V` | `CTRL + ALT + V` |
 | **Hide / Show UI Window** | `ALT + C` | `CMD + SHIFT + H` | `ALT + C` |
 | **Emergency Stop Engine** | `ESC` | `ESC` | `ESC` |
 
 ### 2. Light Engine (`Nexus light...`)
-| Action | 🪟 Windows | 🍏 macOS | 🐧 Linux |
+| Action | Windows | macOS | Linux |
 | :--- | :--- | :--- | :--- |
 | **Start Typing Engine** | `CTRL + ALT + V` | `CMD + SHIFT + V` | `CTRL + ALT + V` |
 | **Hide / Show Mini Window** | `F8` | `F8` | `F8` |
@@ -33,7 +33,7 @@ The keyboard listening layout configures itself automatically based on your acti
 
 ---
 
-## 🛠️ SETUP & SYSTEM DIRECTIONS
+## SETUP & SYSTEM DIRECTIONS
 
 ### Prerequisite Environments
 * Python 3.8 or higher must be installed on your host system.
@@ -43,12 +43,12 @@ The keyboard listening layout configures itself automatically based on your acti
 
 ### Platform-Specific Operating Configurations
 
-#### 🪟 Windows
+#### Windows
 * **Status:** 100% Fully Functional out-of-the-box.
 * **Directions:** 1. Simply double-click `NEXUS.pyw` or the light variant script.
   2. The universal core bootstrap will instantly provision all local package environments (Pillow, PyAutoGUI, Pyperclip, Selenium, etc.) and handle High-DPI layout alignments automatically.
 
-#### 🍏 macOS
+#### macOS
 * **Status:** Fully Functional (Requires Manual Privacy Authorization).
 * **Directions:**
   1. Launch your target module variant directly from your Terminal application:
@@ -64,7 +64,7 @@ The keyboard listening layout configures itself automatically based on your acti
      ```
   4. Explicitly toggle the permission switches to green for your **Terminal** software (or script editor) and the local **Python execution binary**.
 
-#### 🐧 Linux (Ubuntu, Debian, Mint, Fedora, etc.)
+#### Linux (Ubuntu, Debian, Mint, Fedora, etc.)
 * **Status:** Requires Package Verification & X11 Session Adjustment.
 * **Directions:**
   1. Linux distributions do not natively package graphic environments with basic interpreters. Run this command to fetch necessary graphical headers before launching the script:
@@ -80,7 +80,7 @@ The keyboard listening layout configures itself automatically based on your acti
 
 ---
 
-## 🍴 FORKING & CUSTOM EDITS
+## FORKING & CUSTOM EDITS
 If you intend to copy, fork, or edit this project on your own GitHub account, please review the required structural parameters:
 - **Review Code Notes:** Ensure you read and include the fork metadata headers provided inside the source files to maintain clear development lanes. You can find the exact block copy template in the `Fork Template.txt` file.
 - **Maintain Core Attribution:** Keep the original copyright notices intact to properly credit the foundational layout.
