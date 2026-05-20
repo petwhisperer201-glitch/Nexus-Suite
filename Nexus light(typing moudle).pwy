@@ -6,14 +6,19 @@
 # Distributed under the terms of the MIT Open Source License.
 # =================================================================
 
-VERSION = "1.0.0"
+VERSION = "1.0.1-Universal"
 
 import subprocess
 import sys
 import importlib
 import urllib.request
 import threading
+import platform
 import tkinter.messagebox as messagebox
+
+# Platform Context Matrix Identification
+OS_NAME = platform.system()
+print(f"[*] Nexus Architecture Detect: Host Environment running on {OS_NAME}")
 
 # =================================================================
 # 1. AUTOMATIC DEPENDENCY CHECKER & INSTALLER
@@ -39,7 +44,7 @@ def bootstrap_dependencies():
         print(f"[*] Installing missing packages: {', '.join(missing_packages)}...")
         try:
             # Executes pip install cleanly using the current Python executable
-            subprocess.check_call([sys.executable, "-m", "pip", "install", *missing_packages])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", *missing_packages, "--user", "--quiet"])
             print("[+] Environment successfully provisioned.")
         except subprocess.CalledProcessError as e:
             print(f"[-] Critical Error: Failed to install dependencies automatically.\nDetails: {e}")
@@ -59,8 +64,12 @@ def check_for_updates():
     raw_url = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/Nexus%20light(typing%20moudle).pwy"
     
     try:
+        # Adjust target User Agent signatures safely according to execution host
+        ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' if OS_NAME == "Windows" else 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
+        req = urllib.request.Request(raw_url, headers={'User-Agent': ua})
+        
         # Fetch the remote script content with a short timeout
-        with urllib.request.urlopen(raw_url, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             remote_code = response.read().decode('utf-8')
             
             # Simple check to see if your current version string exists in the latest code
@@ -89,7 +98,7 @@ import time
 import re
 from pynput import keyboard
 
-# Styling
+# Styling Framework Configuration Maps
 COLORS = {
     "bg": "#FFFFFF",
     "btn": "#F1F5F9",
@@ -105,9 +114,18 @@ class FinalEliteTool:
     def __init__(self, root):
         self.root = root
         self.root.geometry("340x80")
-        self.root.attributes("-topmost", True)
         self.root.configure(bg=COLORS["bg"])
         self.root.title("")
+        self.root.resizable(False, False)
+
+        # High-DPI Display and Surface Pinning optimizations
+        if OS_NAME == "Windows":
+            self.root.attributes("-topmost", True)
+            try:
+                import ctypes
+                ctypes.windll.shcore.SetProcessDpiAwareness(1)
+            except:
+                pass
 
         self.is_typing = False
         self.stop_requested = False
@@ -116,39 +134,67 @@ class FinalEliteTool:
         self.selected_wpm = 75
 
         content = tk.Frame(self.root, bg=COLORS["bg"], padx=5, pady=5)
-        content.pack(fill="both")
+        content.pack(fill="both", expand=True)
 
         btn_frame = tk.Frame(content, bg=COLORS["bg"])
         btn_frame.pack(fill="x", pady=2)
 
         self.btns = {}
+        # Explicit font mappings configured to degrade gracefully across Quartz and X11
+        ui_font = ("Helvetica", 8, "bold") if OS_NAME != "Windows" else ("Segoe UI", 8, "bold")
+        hint_font = ("Helvetica", 7) if OS_NAME != "Windows" else ("Segoe UI", 7)
+
         for speed in [30, 50, 75, 100, 125]:
             b = tk.Button(btn_frame, text=str(speed), command=lambda s=speed: self.set_speed(s),
                           bg=COLORS["btn"], fg=COLORS["text"], relief="flat",
-                          font=("Segoe UI", 8, "bold"), width=4)
+                          font=ui_font, width=4)
             b.pack(side="left", padx=2)
             self.btns[speed] = b
 
         self.ovd_btn = tk.Button(btn_frame, text="OVD", command=self.toggle_overdrive,
                                  bg=COLORS["btn"], fg=COLORS["text"], relief="flat",
-                                 font=("Segoe UI", 8, "bold"), width=4)
+                                 font=ui_font, width=4)
         self.ovd_btn.pack(side="left", padx=2)
 
         self.set_speed(75)
 
         bottom = tk.Frame(content, bg=COLORS["bg"])
         bottom.pack(fill="x", pady=2)
-        tk.Label(bottom, text="F8: Hide | ESC: Stop", font=("Segoe UI", 7), bg=COLORS["bg"], fg="#A0AEC0").pack(side="left")
+        
+        # Determine appropriate keyboard UI layout labels
+        if OS_NAME == "Darwin":
+            shortcut_label = "F8: Hide | ESC: Stop | CMD+SHIFT+V: Run"
+        else:
+            shortcut_label = "F8: Hide | ESC: Stop | CTRL+ALT+V: Run"
+
+        tk.Label(bottom, text=shortcut_label, font=hint_font, bg=COLORS["bg"], fg="#A0AEC0").pack(side="left")
         self.start_btn = tk.Button(bottom, text="START ENGINE", command=self.trigger, bg=COLORS["accent"],
-                                   fg="white", font=("Segoe UI", 7, "bold"), relief="flat", padx=10)
+                                   fg="white", font=ui_font, relief="flat", padx=10)
         self.start_btn.pack(side="right")
 
         self.status_bar = tk.Frame(self.root, height=3, bg=COLORS["status_ready"])
         self.status_bar.pack(fill="x", side="bottom")
 
-        # Starts global hotkeys in a background thread
-        self.hk = keyboard.GlobalHotKeys({'<f8>': self.toggle_visibility, '<ctrl>+<alt>+v': self.trigger, '<esc>': self.stop})
-        threading.Thread(target=self.hk.run, daemon=True).start()
+        # Dynamic Key Listening Matrix Configurations
+        if OS_NAME == "Darwin":
+            hotkeys = {
+                '<f8>':            self.toggle_visibility,
+                '<cmd>+<shift>+v': self.trigger,
+                '<esc>':           self.stop
+            }
+        else:
+            hotkeys = {
+                '<f8>':           self.toggle_visibility,
+                '<ctrl>+<alt>+v': self.trigger,
+                '<esc>':          self.stop
+            }
+
+        # Starts global hotkeys in a background thread safely
+        try:
+            self.hk = keyboard.GlobalHotKeys(hotkeys)
+            threading.Thread(target=self.hk.run, daemon=True).start()
+        except Exception as e:
+            print(f"[!] Background hotkey intercept engine not supported on this device profile layout: {e}")
 
         # Run the update check asynchronously so the interface remains responsive
         threading.Thread(target=check_for_updates, daemon=True).start()
@@ -166,9 +212,15 @@ class FinalEliteTool:
         self.ovd_btn.config(bg=COLORS["overdrive"], fg="white")
 
     def toggle_visibility(self):
-        if self.is_hidden: self.root.deiconify()
-        else: self.root.withdraw()
-        self.is_hidden = not self.is_hidden
+        def action():
+            if self.is_hidden: 
+                self.root.deiconify()
+                if OS_NAME == "Windows":
+                    self.root.attributes("-topmost", True)
+            else: 
+                self.root.withdraw()
+            self.is_hidden = not self.is_hidden
+        self.root.after(0, action)
 
     def stop(self):
         self.stop_requested = True
