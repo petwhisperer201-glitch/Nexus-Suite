@@ -65,7 +65,7 @@ bootstrap_dependencies()
 # =================================================================
 def check_for_updates():
     # Use the raw URL to read text content safely
-    raw_url = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/Nexus%20light(typing%20moudle).pwy"
+    raw_url = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/Nexus%20light(Typing%20Moudle).pwy"
     
     try:
         # Adjust target User Agent signatures safely according to execution host
