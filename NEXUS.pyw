@@ -93,7 +93,7 @@ else:
 
 # Remote Version Sync Matrix
 def check_for_updates():
-    RAW_GITHUB_URL = "https://github.com/petwhisperer201-glitch/Nexus-Suite/blob/main/NEXUS.pyw"
+    RAW_GITHUB_URL = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/NEXUS.pyw"
     try:
         print("[NEXUS] Checking repository sync status...")
         # Adjust target User Agent signatures safely according to execution host
