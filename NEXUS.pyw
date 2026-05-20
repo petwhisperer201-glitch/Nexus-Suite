@@ -10,7 +10,7 @@
 # this software, the user assumes all structural responsibility.
 # =================================================================
 
-VERSION = "7.1.0"  # Windows + macOS + Linux Seamless Integration
+VERSION = "7.1.1"  # Windows + macOS + Linux Seamless Integration
 
 import subprocess
 import sys
