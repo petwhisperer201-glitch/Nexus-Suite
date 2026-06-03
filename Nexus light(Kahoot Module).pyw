@@ -1,11 +1,15 @@
 # =================================================================
-# NEXUS MODULE SUITE - Light Kahoot Interface Module
+# NEXUS MODULE SUITE - Kahoot Interface Module
 # Copyright (c) 2026 petwhisperer201-glitch and The-Samri
 # 
 # Provided "AS IS" for educational and productivity purposes.
 # Distributed under the terms of the MIT Open Source License.
+#
+# The owners and their team are not responsible for misuse, 
+# academic penalties, or third-party platform bans. By running 
+# this software, the user assumes all structural responsibility.
 # =================================================================
-
+ 
 VERSION = "1.1.0"
 
 import subprocess
