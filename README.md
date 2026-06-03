@@ -1,79 +1,87 @@
 # NEXUS // MODULE SUITE
 
-Nexus is a cross-platform behavioral utility suite for automated typing and game interaction. It mimics human behavior to avoid detection through randomized input patterns, dynamic fatigue models, and adaptive pausing matrices.
+Nexus is a cross-platform behavioral utility suite designed for automated typing simulation and live game client interaction. It leverages programmatic delay profiles, randomized user-fatigue matrices, and headless visual matching layers to smooth input tracks across target environments.
 
 ---
 
 ## MODULE OVERVIEW
 
-This repository contains two variations of the engine depending on your specific use case:
+This repository partitions core mechanics into three specific, decoupled script variations depending on your workspace footprint or automation objective:
 
-1. **`NEXUS.pyw` (Full Suite):** Features a high-fidelity visual dashboard, remote version syncing, advanced human behavioral controls, and a fully automated Multi-Game Vision tool (supporting Kahoot, Blooket, and Gimkit).
-2. **`Nexus light(typing mou...).py` (Light Module):** An ultra-compact, lightweight background engine focusing entirely on pure text automation with discrete preset triggers and an instant Overdrive (OVD) speed injection mode.
+1. **`NEXUS.pyw` (Full Core Suite):** Features the high-fidelity graphical Matrix-rain dashboard, live repository update sync patches, sliders for customized human pacing, and the unified vision tab system containing automated bypass tools for Kahoot and Blooket sessions.
+2. **`Nexus light(Typing Moudle).pwy` (Standalone Typing):** An ultra-compact, stripped-down desktop injector focused purely on text streaming automation. Features discrete WPM modifier hotkeys and an integrated instant Overdrive (OVD) layout switch.
+3. **`Nexus light(Kahoot Module).pyw` (Standalone Kahoot Engine):** A minimalist standalone web-automation node built exclusively to target live game structures. It strips out all typing code strings, tracking browser selectors directly via standard Selenium frameworks, and includes a localized error-percentage calibration matrix.
 
 ---
 
 ## CONTROLS & SHORTCUT MAPS
 
-The keyboard listening layout configures itself automatically based on your active operating system:
+System shortcut behaviors automatically map based on host platform parameters:
 
-### 1. Full Engine (`NEXUS.pyw`)
+### 1. Full Master Suite (`NEXUS.pyw`)
 | Action | Windows | macOS | Linux |
 | :--- | :--- | :--- | :--- |
-| **Start Typing Engine** | `CTRL + ALT + V` | `CMD + SHIFT + V` | `CTRL + ALT + V` |
-| **Hide / Show UI Window** | `ALT + C` | `CMD + SHIFT + H` | `ALT + C` |
-| **Emergency Stop Engine** | `ESC` | `ESC` | `ESC` |
+| **Start Behavioral Typing** | `CTRL + ALT + V` | `CMD + SHIFT + V` | `CTRL + ALT + V` |
+| **Toggle Suite Window Visibility** | `ALT + C` | `CMD + SHIFT + H` | `ALT + C` |
+| **Emergency Kill Typing Thread** | `ESC` | `ESC` | `ESC` |
 
-### 2. Light Engine (`Nexus light...`)
+### 2. Standalone Typing Engine (`Nexus light(Typing Moudle).pwy`)
 | Action | Windows | macOS | Linux |
 | :--- | :--- | :--- | :--- |
-| **Start Typing Engine** | `CTRL + ALT + V` | `CMD + SHIFT + V` | `CTRL + ALT + V` |
-| **Hide / Show Mini Window** | `F8` | `F8` | `F8` |
-| **Emergency Stop Engine** | `ESC` | `ESC` | `ESC` |
+| **Inject Clipboard String** | `CTRL + ALT + V` | `CMD + SHIFT + V` | `CTRL + ALT + V` |
+| **Toggle Mini Overlay View** | `F8` | `F8` | `F8` |
+| **Emergency Halt Automation** | `ESC` | `ESC` | `ESC` |
+
+### 3. Standalone Kahoot Node (`Nexus light(Kahoot Module).pyw`)
+| Action | Windows | macOS | Linux |
+| :--- | :--- | :--- | :--- |
+| **Launch Web Driver Frame** | Click `LAUNCH ENGINE` GUI Button | Click `LAUNCH ENGINE` GUI Button | Click `LAUNCH ENGINE` GUI Button |
+| **Toggle Window Visibility Matrix** | `F8` | `F8` | `F8` |
+| **Emergency Close & Driver Kill** | `ESC` | `ESC` | `ESC` |
 
 ---
 
 ## SETUP & SYSTEM DIRECTIONS
 
 ### Prerequisite Environments
-* Python 3.8 or higher must be installed on your host system.
-* Copy your target payload or text to your system clipboard before initializing the typing loops.
+* Python 3.8 (or higher) is mandatory for core system compilation.
+* For the typing engines, copy target payload texts directly to the clipboard before execution. 
+* For the Kahoot vision modules, a valid, unobstructed internet connection is required to coordinate with the API decisions and internal web drivers.
 
 ---
 
 ### Platform-Specific Operating Configurations
 
 #### Windows
-* **Status:** 100% Fully Functional out-of-the-box.
-* **Directions:** 1. Simply double-click `NEXUS.pyw` or the light variant script.
-  2. The universal core bootstrap will instantly provision all local package environments (Pillow, PyAutoGUI, Pyperclip, Selenium, etc.) and handle High-DPI layout alignments automatically.
+* **Status:** 100% Fully Functional with high-DPI platform scaling adjustments out of the box.
+* **Directions:** Direct execution by double-clicking the specified script module target. The bootstrap pipeline automatically pulls missing environment attachments (`Pillow`, `pyautogui`, `pyperclip`, `pynput`, `requests`, `selenium`, `webdriver-manager`, `pygetwindow`, `pystray`) into local user paths cleanly and quietly.
 
 #### macOS
-* **Status:** Fully Functional (Requires Manual Privacy Authorization).
+* **Status:** Fully Functional (Requires Manual Accessibility Entitlements).
 * **Directions:**
-  1. Launch your target module variant directly from your Terminal application:
+  1. Boot your selected automation component directly using your terminal console framework:
      ```bash
      python3 NEXUS.pyw
      # OR
-     python3 "Nexus light(typing mou...).py"
+     python3 "Nexus light(Kahoot Module).pyw"
      ```
-  2. Because macOS utilizes sandbox tracking protection, global listener events and script injections will be blocked on the initial trigger.
-  3. Authorize the operations manually by opening your computer's interface and navigating to:
+  2. Because macOS isolates input-monitoring permissions, background event handlers and hotkey hooks are restricted during initialization.
+  3. Approve execution access by pointing your computer’s workspace preferences to:
      ```text
      System Settings ➔ Privacy & Security ➔ Accessibility
      ```
-  4. Explicitly toggle the permission switches to green for your **Terminal** software (or script editor) and the local **Python execution binary**.
+  4. Ensure permissions are toggled to active for your targeting **Terminal** application instance and the base **Python application binary**.
 
 #### Linux (Ubuntu, Debian, Mint, Fedora, etc.)
-* **Status:** Requires Package Verification & X11 Session Adjustment.
+* **Status:** Requires Frame Buffer Prerequisites & X11 Workspace Switch.
 * **Directions:**
-  1. Linux distributions do not natively package graphic environments with basic interpreters. Run this command to fetch necessary graphical headers before launching the script:
+  1. Linux server configurations lack embedded graphical framework wrappers. Deploy structural window dependencies using your native package manager before script launch:
      ```bash
      sudo apt update && sudo apt install python3-tk tk-dev libx11-dev -y
      ```
-  2. **Crucial Wayland Security Blockade:** Modern Linux desktops default to an isolated display window engine called **Wayland**, which strictly isolates application windows and intentionally prevents tools like PyAutoGUI from sending keystrokes across applications.
-  3. To bypass this, log out of your Linux account entirely. On the main login page, locate the gear/settings icon in the lower-right corner and explicitly switch your session profile to **Ubuntu on Xorg (X11)** or **X11 Session**.
-  4. Once logged back into your new desktop environment, boot the application:
+  2. **Wayland Display Restrictions:** Modern distribution default desktop engines (Wayland) purposefully separate processing structures, blocking libraries like `pyautogui` or `pynput` from dispatching virtual keystrokes across decoupled app layers.
+  3. To bypass this, log out of your current session profile. Before re-entering your user credentials, locate the gear icon in the lower corner of the display manager and explicitly modify the target profile setting to **Ubuntu on Xorg** or **X11 Session**.
+  4. Once initialized into your new graphic environment session, execute:
      ```bash
      python3 NEXUS.pyw
      ```
