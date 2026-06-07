@@ -10,7 +10,7 @@
 # this software, the user assumes all structural responsibility.
 # =================================================================
 
-VERSION = "1.1.5"
+VERSION = "1.1.0"
 
 import subprocess
 import sys
@@ -62,25 +62,42 @@ bootstrap_dependencies()
 
 
 # =================================================================
-# 2. SAFE VERSION CHECKER
+# 2. SEAMLESS REPOSITORY AUTO-UPDATER
 # =================================================================
 def check_for_updates():
     raw_url = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/refs/heads/main/Nexus%20light(Kahoot%20Module).pyw"
     try:
+        print("[NEXUS] Checking repository sync status...")
         ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' if OS_NAME == "Windows" else 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
         req = urllib.request.Request(raw_url, headers={'User-Agent': ua})
+        
         with urllib.request.urlopen(req, timeout=5) as response:
             remote_code = response.read().decode('utf-8')
-            if f'VERSION = "{VERSION}"' not in remote_code:
-                print("[*] A new update is available on GitHub.")
+            
+        # Parse out the actual version tag number safely from remote script lines
+        match = re.search(r'VERSION\s*=\s*["\']([^"\']+)["\']', remote_code)
+        
+        if match:
+            remote_version = match.group(1)
+            if remote_version != VERSION:
+                print(f"[NEXUS] New update discovered: v{remote_version} (Current local: v{VERSION})")
+                print("[NEXUS] Overwriting local architecture matrix...")
+                
+                # Capture the precise system location path of this file and rewrite its contents
+                current_file_path = os.path.abspath(__file__)
+                with open(current_file_path, "w", encoding="utf-8") as f:
+                    f.write(remote_code)
+                    
+                print("[NEXUS] Update successfully injected!")
                 messagebox.showinfo(
-                    "Update Available", 
-                    "A new version of Nexus Suite is available.\nPlease visit the GitHub repository to download the latest version."
+                    "Nexus Suite Updated", 
+                    f"Successfully updated from v{VERSION} to v{remote_version}!\n\nThe application will now close. Please restart it."
                 )
+                os._exit(0)
             else:
-                print("[+] Nexus Suite is up to date.")
+                print("[+] Nexus Suite is fully synchronized.")
     except Exception as e:
-        print(f"[-] Could not check for updates: {e}")
+        print(f"[-] Code sync sequence bypassed: {e}")
 
 
 # =================================================================
@@ -211,6 +228,7 @@ class LightKahootNexusTool:
         except Exception as e:
             print(f"[!] Background hotkey engine matrix fallback: {e}")
 
+        # Run update check immediately inside background thread
         threading.Thread(target=check_for_updates, daemon=True).start()
 
     def set_error_rate(self, r):
@@ -271,7 +289,6 @@ class LightKahootNexusTool:
         browser_choice = self.browser_var.get().lower()
         
         try:
-            # Replaced with standard core service path parameters extracted from your main tool
             if browser_choice == "chrome":
                 opts = ChromeOptions()
                 opts.add_argument("--disable-gpu")
