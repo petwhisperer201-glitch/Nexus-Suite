@@ -65,7 +65,7 @@ bootstrap_dependencies()
 # 2. SAFE VERSION CHECKER
 # =================================================================
 def check_for_updates():
-    raw_url = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/main/Nexus%20light(Typing%20Moudle).pwy"
+    raw_url = "https://raw.githubusercontent.com/petwhisperer201-glitch/Nexus-Suite/refs/heads/main/Nexus%20light(Kahoot%20Module).pyw"
     try:
         ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' if OS_NAME == "Windows" else 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
         req = urllib.request.Request(raw_url, headers={'User-Agent': ua})
